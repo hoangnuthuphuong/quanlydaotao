@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tìm kiếm dữ liệu</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+</head>
+<body>
+	<!-- [ Header ] start -->
+	<header class="navbar pcoded-header navbar-expand-lg navbar-light headerpos-fixed header-blue">
+        <div class="m-header">
+            <a class="mobile-menu on" id="mobile-collapse" href="#!"><span></span></a>
+            <a href="#!" class="b-brand">
+                <!-- ========   change your logo hear   ============ -->
+                <img src="https://s24.q4cdn.com/661451417/files/doc_multimedia/HanesBrands_Stacked.jpg" alt="" class="logo" height="50px">
+                <img src="https://1000logos.net/wp-content/uploads/2021/05/Hanes-logo.png" alt="" class="logo-thumb" height="70px">
+            </a>
+            <a href="#!" class="mob-toggler">
+                <i class="feather icon-more-vertical"></i>
+            </a>
+        </div>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a href="#!" class="pop-search"><i class="feather icon-search"></i></a>
+                    <div class="search-bar">
+                        <input type="text" class="form-control border-0 shadow-none" placeholder="Search here">
+                        <button type="button" class="close" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a href="#!" class="full-screen" onclick="javascript:toggleFullScreen()"><i class="feather icon-maximize"></i></a>
+                </li>
+            </ul>
+        </div>
+    </header>
+    <!-- [ Header ] end -->
+
+
+
+<!-- Search/Filter Form -->
+<div class="container">
+
+    <h3>TÌM KIẾM</h3>
+    <div class="row">
+        <form action="" method="POST" class="form-inline w-100">
+            {% csrf_token %}
+            <div class="col-md-3 mb-3">
+                <label for="id">ID:</label>
+                <input type="text" class="form-control w-100" id="id" name="id" placeholder="Nhập ID" value="{{ request.POST.id|default_if_none:'' }}">
+            </div>
+            <div class="col-md-3 mb-3">
+                <label for="startdate">Ngày vào:</label>
+                <input type="date" class="form-control w-100" id="startdate" name="startdate" placeholder="Chọn ngày bắt đầu" value="{{ request.POST.startdate|default_if_none:'' }}">
+            </div>
+            <div class="col-md-3 mb-3">
+                <label for="line">Nhập chuyền:</label>
+                <input type="text" class="form-control w-100" id="line" name="line" placeholder="Nhập chuyền" value="{{ request.POST.line|default_if_none:'' }}">
+            </div>
+            <div class="col-md-3 mb-3">
+                <label for="shift">Ca:</label>
+                <input type="text" class="form-control w-100" id="shift" name="shift" placeholder="Nhập ca" value="{{ request.POST.shift|default_if_none:'' }}">
+            </div>
+            <div class="col-md-12 text-left">
+                <button type="submit" class="btn btn-primary" style="height:40px; margin-top: 20px;">Search</button>
+            </div>
+        </form>
+    </div>
+
+
+
+    {% if filter_data %}
+        <h3>Results:</h3>
+        <table class="table table-bordered" style="padding:50px">
+            <thead>
+                <tr>
+                    {% for column in filter_data.0.keys %}
+                        <th>{{ column }}</th>
+                    {% endfor %}
+
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in filter_data %}
+                    <tr>
+                        {% for cell in row.values %}
+                            <td>{{ cell }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Không có dữ liệu cần tìm.</p>
+    {% endif %}
+</div>
+<!-- End Search/Filter Form -->
+
+</body>
