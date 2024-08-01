@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
 from django.template import loader
+from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from sqlalchemy import create_engine
 import mysql.connector
@@ -66,68 +67,66 @@ def search_data(request):
                 filter_data = filter_data.to_dict(orient='records')
 
     context = {'form': form, 'filter_data': filter_data}
-    return render(request, 'search.html', context)
+    return render(request, 'index.html', context)
 
 
 
-def edit_data(request, id):
+
+from .forms import EditForm
+from django.shortcuts import render, redirect
+from django.db import connection
+from django.contrib import messages
+
+def edit_data(request, ID):
     # Fetch existing data
     with connection.cursor() as cursor:
-        cursor.execute("SELECT * FROM training_data WHERE ID = %s", [id])
+        cursor.execute("SELECT * FROM training_data WHERE ID = %s", [ID])
         row = cursor.fetchone()
         columns = [col[0] for col in cursor.description]
         if row is None:
             messages.error(request, 'Record not found.')
-            return redirect('search')
+            return redirect('index')
 
         record = dict(zip(columns, row))
 
     if request.method == 'POST':
-        # Read form data
-        data = {
-            'ID': request.POST.get('ID'),
-            'Name': request.POST.get('Name'),
-            'Line': request.POST.get('Line'),
-            'Shift': request.POST.get('Shift'),
-            'Plant': request.POST.get('Plant'),
-            'Operation': request.POST.get('Operation'),
-            'Type_training': request.POST.get('Type_training'),
-            'Week_start': request.POST.get('Week_start'),
-            'Week_end': request.POST.get('Week_end'),
-            'Technician': request.POST.get('Technician'),
-            'StartDate': request.POST.get('StartDate'),
-        }
+        form = EditForm(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
 
-        # Update the data
-        update_query = """
-            UPDATE training_data
-            SET Name = %s, Line = %s, Shift = %s, Plant = %s, Operation = %s,
-                Type_training = %s, Week_start = %s, Week_end = %s, Technician = %s, StartDate = %s
-            WHERE ID = %s
-        """
-        params = (
-            data['Name'], data['Line'], data['Shift'], data['Plant'], data['Operation'],
-            data['Type_training'], data['Week_start'], data['Week_end'], data['Technician'],
-            data['StartDate'], id
-        )
+            # Update the data
+            update_query = """
+                UPDATE training_data
+                SET Name = %s, Line = %s, Shift = %s, Plant = %s, Operation = %s,
+                    Type_training = %s, Week_start = %s, Week_end = %s, Technician = %s, StartDate = %s
+                WHERE ID = %s
+            """
+            params = (
+                data['Name'], data['Line'], data['Shift'], data['Plant'], data['Operation'],
+                data['Type_training'], data['Week_start'], data['Week_end'], data['Technician'],
+                data['StartDate'], ID
+            )
 
-        with connection.cursor() as cursor:
-            cursor.execute(update_query, params)
+            try:
+                with connection.cursor() as cursor:
+                    cursor.execute(update_query, params)
+                messages.success(request, 'Data updated successfully!')
+            except Exception as e:
+                messages.error(request, f"An error occurred: {e}")
 
-        messages.success(request, 'Data updated successfully!')
-        return redirect('search')
+            return redirect('edit_data', ID=ID)
+    else:
+        form = EditForm(initial=record)
 
-    context = {'record': record}
+    context = {'form': form, 'record': record}
     return render(request, 'edit.html', context)
 
-
-# The rest of your views...
 
 
 @csrf_exempt
 def add_employee(request):
     if request.method == 'POST':
-        id = request.POST['id']
+        id = request.POST['ID']
         name = request.POST['name']
         line = request.POST['line']
         shift = request.POST['shift']

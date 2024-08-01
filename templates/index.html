@@ -12,7 +12,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
     <!-- Favicon icon -->
-<!--    <link id="hbi_logo" href="https://1000logos.net/wp-content/uploads/2021/05/Hanes-logo.png">-->
+    <link rel="icon" href="https://1000logos.net/wp-content/uploads/2021/05/Hanes-logo.png" type="image/x-icon">
 
     <!-- vendor css -->
     <link rel="stylesheet" href="https://appsrv1-147a1.kxcdn.com/gradient/css/style.min.css">
@@ -24,10 +24,6 @@
     }
 </style>
 <body class="">
-
-	<!-- [ Pre-loader ] start -->
-
-    <!-- [ Pre-loader ] End -->
 
 
 	<!-- [ navigation menu ] start -->
@@ -250,8 +246,6 @@
                 </li>
             </ul>
         </div>
-
-
     </header>
     <!-- [ Header ] end -->
 
@@ -331,57 +325,63 @@
                 </div>
                 <!-- users visite end -->
 
+<!--                Tìm kiếm-->
+        <form action="/search/" method="POST" class="form-inline w-100">
+            {% csrf_token %}
+            <div class="col-md-3 mb-3">
+                <label for="id">ID:</label>
+                <input type="text" class="form-control w-100" id="id" name="id" placeholder="Nhập ID" value="{{ request.POST.id|default_if_none:'' }}">
+            </div>
+            <div class="col-md-3 mb-3">
+                <label for="startdate">Ngày vào:</label>
+                <input type="date" class="form-control w-100" id="startdate" name="startdate" placeholder="Chọn ngày bắt đầu" value="{{ request.POST.startdate|default_if_none:'' }}">
+            </div>
+            <div class="col-md-3 mb-3">
+                <label for="line">Nhập chuyền:</label>
+                <input type="text" class="form-control w-100" id="line" name="line" placeholder="Nhập chuyền" value="{{ request.POST.line|default_if_none:'' }}">
+            </div>
+            <div class="col-md-3 mb-3">
+                <label for="shift">Ca:</label>
+                <input type="text" class="form-control w-100" id="shift" name="shift" placeholder="Nhập ca" value="{{ request.POST.shift|default_if_none:'' }}">
+            </div>
+            <div class="col-md-12 text-left">
+                <button type="submit" class="btn btn-primary" style="height:40px; margin-top: 20px;">Search</button>
+            </div>
+        </form>
+        {% if filter_data %}
+            <h3>Kết quar:</h3>
+            <table class="table table-hover" style="padding:50px">
+                <thead>
+                    <tr>
+                    <th><span>Mã nhân viên</span></th>
+                    <th><span>Họ tên</span></th>
+                    <th><span>Nhóm <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
+                    <th><span>Ca <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
+                    <th><span>Vị trí <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
+                    <th><span>Công đoạn <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
+                    <th><span>Loại đào tạo <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
+                    <th><span>Tuần bắt đầu <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
+                    <th><span>Tuần ra sản xuất <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
+                    <th><span>Kỹ thuật <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
+                    <th><span>Ngày bắt đầu</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in filter_data %}
+                        <tr>
+                            {% for cell in row.values %}
+                                <td>{{ cell }}</td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>Không có dữ liệu cần tìm.</p>
+        {% endif %}
 
 
-                        <!-- Search/Filter Form -->
-                        <div class="col-md-12">
-                            <form action="" method="POST">
-                                {% csrf_token %}
-                                <div class="row">
-                                    <div class="col-md-3 mb-3">
-                                        <label for="id">ID:</label>
-                                        <input type="text" class="form-control" id="id" name="id" placeholder="Nhập ID" value="{{ form.id.value|default_if_none:'' }}">
-                                    </div>
-                                    <div class="col-md-3 mb-3">
-                                        <label for="startdate">Ngày vào:</label>
-                                        <input type="text" class="form-control" id="startdate" name="startdate" placeholder="Chọn ngày bắt đầu" value="{{ form.startdate.value|default_if_none:'' }}">
-                                    </div>
-                                    <div class="col-md-3 mb-3">
-                                        <label for="line">Nhập chuyền</label>
-                                        <input type="text" class="form-control" id="line" name="line" placeholder="Nhập chuyền" value="{{ form.line.value|default_if_none:'' }}">
-                                    </div>
-                                    <div class="col-md-3 mb-3">
-                                        <label for="shift">Ca:</label>
-                                        <input type="text" class="form-control" id="shift" name="shift" placeholder="Nhập ca" value="{{ form.shift.value|default_if_none:'' }}">
-                                    </div>
-                                </div>
-                                <button type="submit" class="btn btn-primary" style="height:40px; padding:center">Search</button>
-                            </form>
-                            {% if filter_data %}
-                                <h3>Results:</h3>
-                                <table class="table table-bordered">
-                                    <thead>
-                                        <tr>
-                                            {% for column in filter_data.0.keys %}
-                                                <th>{{ column }}</th>
-                                            {% endfor %}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for row in filter_data %}
-                                            <tr>
-                                                {% for cell in row.values %}
-                                                    <td>{{ cell }}</td>
-                                                {% endfor %}
-                                            </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            {% else %}
-                                <p> Không có dữ liệu cần tìm. </p>
-                            {% endif %}
-                        </div>
-                        <!-- End Search/Filter Form -->
+
 
                 <!-- Bảng dữ liệu nhân viên start -->
                 {% block employee_data %}

@@ -1,8 +1,10 @@
 {% extends 'index.html' %}
 
 {% block employee_data %}
+
+
 <!-- Bảng dữ liệu nhân viên start -->
-<div class="col-md-12" style="padding-top: 15px">
+<div class="tab-pane fade show active" style="padding-top: 15px">
     <div class="card table-card">
         <div class="card-header-right">
             <div class="card-header">
@@ -35,40 +37,58 @@
                     </li>
                 </ul>
                 <div class="table-responsive" style="width:100%">
-                    <table class="table table-hover" style="width:90%">
-                    <thead>
-                        <tr>
-                        <th><span>Mã nhân viên</span></th>
-                        <th><span>Họ tên</span></th>
-                        <th><span>Nhóm <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
-                        <th><span>Ca <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
-                        <th><span>Vị trí <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
-                        <th><span>Công đoạn <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
-                        <th><span>Loại đào tạo <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
-                        <th><span>Tuần bắt đầu <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
-                        <th><span>Tuần ra sản xuất <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
-                        <th><span>Kỹ thuật <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
-                        <th><span>Ngày bắt đầu</span></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for employee in training_data %}
-                        <tr>
-                            <td>{{ employee.ID }}</td>
-                            <td>{{ employee.Name }}</td>
-                            <td>{{ employee.Line }}</td>
-                            <td>{{ employee.Shift }}</td>
-                            <td>{{ employee.Plant }}</td>
-                            <td>{{ employee.Operation }}</td>
-                            <td>{{ employee.Type_training }}</td>
-                            <td>{{ employee.Week_start }}</td>
-                            <td>{{ employee.Week_end }}</td>
-                            <td>{{ employee.Technician }}</td>
-                            <td>{{ employee.StartDate }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                    <table class="table table-hover" >
+
+
+                        <thead>
+                            <tr>
+                            <th><span>Mã nhân viên</span></th>
+                            <th><span>Họ tên</span></th>
+                            <th><span>Nhóm <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
+                            <th><span>Ca <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
+                            <th><span>Vị trí <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
+                            <th><span>Công đoạn <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
+                            <th><span>Loại đào tạo <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
+                            <th><span>Tuần bắt đầu <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
+                            <th><span>Tuần ra sản xuất <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
+                            <th><span>Kỹ thuật <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
+                            <th><span>Ngày bắt đầu</span></th>
+                            <th><span>Chỉnh sửa</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                <!-- TÌM KIẾM-->
+                            {% for row in filter_data %}
+                                <tr>
+                                    {% for cell in row.values %}
+                                        <td>{{ cell }}</td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                <!-- TÌM KIẾM-->
+
+                            {% for employee in training_data %}
+                            <tr>
+                                <td>{{ employee.ID }}</td>
+                                <td>{{ employee.Name }}</td>
+                                <td>{{ employee.Line }}</td>
+                                <td>{{ employee.Shift }}</td>
+                                <td>{{ employee.Plant }}</td>
+                                <td>{{ employee.Operation }}</td>
+                                <td>{{ employee.Type_training }}</td>
+                                <td>{{ employee.Week_start }}</td>
+                                <td>{{ employee.Week_end }}</td>
+                                <td>{{ employee.Technician }}</td>
+                                <td>{{ employee.StartDate }}</td>
+                                <td>
+                                    <a href="{% url 'edit_data' employee.ID %}" class="btn btn-sm btn-warning">Edit</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+
+
+                        </tbody>
+                    </table>
                 </div>
 
             </div>

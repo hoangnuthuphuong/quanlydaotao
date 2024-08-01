@@ -3,59 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Data</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Edit Employee Data</title>
+    <link rel="stylesheet" href="https://appsrv1-147a1.kxcdn.com/gradient/css/style.min.css">
 </head>
 <body>
-    <!-- Header and navigation can be included here if needed -->
+    <h1>Edit Employee Data</h1>
 
-    <div class="container">
-        <h3>Edit Data for {{ record.Name }}</h3>
-        <form method="POST">
-            {% csrf_token %}
-            <div class="form-group">
-                <label for="Name">Name:</label>
-                <input type="text" class="form-control" id="Name" name="Name" value="{{ record.Name }}">
-            </div>
-            <div class="form-group">
-                <label for="Line">Line:</label>
-                <input type="text" class="form-control" id="Line" name="Line" value="{{ record.Line }}">
-            </div>
-            <div class="form-group">
-                <label for="Shift">Shift:</label>
-                <input type="text" class="form-control" id="Shift" name="Shift" value="{{ record.Shift }}">
-            </div>
-            <div class="form-group">
-                <label for="Plant">Plant:</label>
-                <input type="text" class="form-control" id="Plant" name="Plant" value="{{ record.Plant }}">
-            </div>
-            <div class="form-group">
-                <label for="Operation">Operation:</label>
-                <input type="text" class="form-control" id="Operation" name="Operation" value="{{ record.Operation }}">
-            </div>
-            <div class="form-group">
-                <label for="Type_training">Type Training:</label>
-                <input type="text" class="form-control" id="Type_training" name="Type_training" value="{{ record.Type_training }}">
-            </div>
-            <div class="form-group">
-                <label for="Week_start">Week Start:</label>
-                <input type="text" class="form-control" id="Week_start" name="Week_start" value="{{ record.Week_start }}">
-            </div>
-            <div class="form-group">
-                <label for="Week_end">Week End:</label>
-                <input type="text" class="form-control" id="Week_end" name="Week_end" value="{{ record.Week_end }}">
-            </div>
-            <div class="form-group">
-                <label for="Technician">Technician:</label>
-                <input type="text" class="form-control" id="Technician" name="Technician" value="{{ record.Technician }}">
-            </div>
-            <div class="form-group">
-                <label for="StartDate">Start Date:</label>
-                <input type="date" class="form-control" id="StartDate" name="StartDate" value="{{ record.StartDate }}">
-            </div>
-            <button type="submit" class="btn btn-primary">Save Changes</button>
-            <a href="{% url 'search' %}" class="btn btn-secondary">Cancel</a>
-        </form>
+
+        <!-- Display success or error messages -->
+    {% if messages %}
+        <ul>
+        {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+
+
+    <form method="post">
+        {% csrf_token %}
+        <div>
+            <label for="Name">Name:</label>
+            <input type="text" id="Name" name="Name" value="{{ record.Name }}">
+        </div>
+        <div>
+            <label for="Line">Line:</label>
+            <input type="text" id="Line" name="Line" value="{{ record.Line }}">
+        </div>
+        <div>
+            <label for="Shift">Shift:</label>
+            <input type="text" id="Shift" name="Shift" value="{{ record.Shift }}">
+        </div>
+        <div>
+            <label for="Plant">Plant:</label>
+            <input type="text" id="Plant" name="Plant" value="{{ record.Plant }}">
+        </div>
+        <div>
+            <label for="Operation">Operation:</label>
+            <input type="text" id="Operation" name="Operation" value="{{ record.Operation }}">
+        </div>
+        <div>
+            <label for="Type_training">Type of Training:</label>
+            <input type="text" id="Type_training" name="Type_training" value="{{ record.Type_training }}">
+        </div>
+        <div>
+            <label for="Week_start">Week Start:</label>
+            <input type="date" id="Week_start" name="Week_start" value="{{ record.Week_start }}">
+        </div>
+        <div>
+            <label for="Week_end">Week End:</label>
+            <input type="date" id="Week_end" name="Week_end" value="{{ record.Week_end }}">
+        </div>
+        <div>
+            <label for="Technician">Technician:</label>
+            <input type="text" id="Technician" name="Technician" value="{{ record.Technician }}">
+        </div>
+        <div>
+            <label for="StartDate">Start Date:</label>
+            <input type="DATE" id="StartDate" name="StartDate" value="{{ record.StartDate }}">
+        </div>
+        <div>
+            <button type="submit">Update</button>
+        </div>
+    </form>
+    {% for employee in employees %}
+        <a href="{% url 'edit_data' employee.ID %}" class="btn btn-sm btn-warning">Edit</a>
+    {% endfor %}
+
+    <div>
+        <a href="{% url 'index' %}" class="btn btn-sm btn-secondary">Back</a>
     </div>
+
 </body>
 </html>

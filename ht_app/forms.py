@@ -60,8 +60,13 @@ class SearchForm(forms.Form):
 
 
 class EditForm(forms.Form):
-    class Meta:
-        fields = ['Name', 'Line', 'Shift', 'Plant', 'Operation', 'Type_training', 'Week_start', 'Week_end', 'Technician', 'StartDate']
-        widgets = {
-            'StartDate': forms.DateInput(attrs={'type': 'date'}),
-        }
+    Name = forms.CharField(max_length=100, required=False)
+    Line = forms.CharField(max_length=100, required=False)
+    Shift = forms.CharField(max_length=100, required=False)
+    Plant = forms.CharField(max_length=100, required=False)
+    Operation = forms.CharField(max_length=100, required=False)
+    Type_training = forms.CharField(max_length=100, required=False)
+    Week_start = forms.CharField(max_length=100, required=False)
+    Week_end = forms.CharField(max_length=100, required=False)
+    Technician = forms.CharField(max_length=100, required=False)
+    StartDate = forms.DateField( required=False)
