@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Employee Data</title>
+    <title>Add Employee</title>
     <link rel="stylesheet" href="https://appsrv1-147a1.kxcdn.com/gradient/css/style.min.css">
 </head>
 <body>
-    <h1>Edit Employee Data</h1>
+    <h1>Add New Employee</h1>
 
     <!-- Display success or error messages -->
     {% if messages %}
@@ -18,55 +18,55 @@
         </ul>
     {% endif %}
 
-    <form method="post">
+    <form method="post" action="{% url 'add_employee' %}">
         {% csrf_token %}
         <div>
+            <label for="ID">ID:</label>
+            <input type="text" id="ID" name="ID">
+        </div>
+        <div>
             <label for="Name">Name:</label>
-            <input type="text" id="Name" name="Name" value="{{ record.Name }}">
+            <input type="text" id="Name" name="Name">
         </div>
         <div>
             <label for="Line">Line:</label>
-            <input type="text" id="Line" name="Line" value="{{ record.Line }}">
+            <input type="text" id="Line" name="Line">
         </div>
         <div>
             <label for="Shift">Shift:</label>
-            <input type="text" id="Shift" name="Shift" value="{{ record.Shift }}">
+            <input type="text" id="Shift" name="Shift">
         </div>
         <div>
             <label for="Plant">Plant:</label>
-            <input type="text" id="Plant" name="Plant" value="{{ record.Plant }}">
+            <input type="text" id="Plant" name="Plant">
         </div>
         <div>
             <label for="Operation">Operation:</label>
-            <input type="text" id="Operation" name="Operation" value="{{ record.Operation }}">
+            <input type="text" id="Operation" name="Operation">
         </div>
         <div>
             <label for="Type_training">Type of Training:</label>
-            <input type="text" id="Type_training" name="Type_training" value="{{ record.Type_training }}">
+            <input type="text" id="Type_training" name="Type_training">
         </div>
         <div>
             <label for="Week_start">Week Start:</label>
-            <input type="date" id="Week_start" name="Week_start" value="{{ record.Week_start }}">
+            <input type="date" id="Week_start" name="Week_start">
         </div>
         <div>
             <label for="Week_end">Week End:</label>
-            <input type="date" id="Week_end" name="Week_end" value="{{ record.Week_end }}">
+            <input type="date" id="Week_end" name="Week_end">
         </div>
         <div>
             <label for="Technician">Technician:</label>
-            <input type="text" id="Technician" name="Technician" value="{{ record.Technician }}">
+            <input type="text" id="Technician" name="Technician">
         </div>
         <div>
-            <label for="StartDate">StartDate:</label>
-            <input type="date" id="StartDate" name="StartDate" value="{{ record.StartDate }}">
+            <label for="StartDate">Start Date:</label>
+            <input type="date" id="StartDate" name="StartDate">
         </div>
-
         <div>
-            <button type="submit">Update</button>
+            <button type="submit">Thêm nhân viên</button>
         </div>
     </form>
-    <div>
-        <a href="{% url 'index' %}" class="btn btn-sm btn-secondary">Back</a>
-    </div>
 </body>
 </html>

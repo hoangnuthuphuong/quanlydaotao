@@ -69,4 +69,5 @@ class EditForm(forms.Form):
     Week_start = forms.CharField(max_length=100, required=False)
     Week_end = forms.CharField(max_length=100, required=False)
     Technician = forms.CharField(max_length=100, required=False)
-    StartDate = forms.DateField( required=False)
+    StartDate = forms.CharField(max_length=100, required=False)
+

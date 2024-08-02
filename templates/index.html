@@ -325,6 +325,7 @@
                 </div>
                 <!-- users visite end -->
 
+
 <!--                Tìm kiếm-->
         <form action="/search/" method="POST" class="form-inline w-100">
             {% csrf_token %}
@@ -374,6 +375,7 @@
                             {% endfor %}
                         </tr>
                     {% endfor %}
+
                 </tbody>
             </table>
         {% else %}
@@ -382,10 +384,8 @@
 
 
 
-
                 <!-- Bảng dữ liệu nhân viên start -->
                 {% block employee_data %}
-
                 {% endblock %}
 
 
@@ -393,7 +393,6 @@
         </div>
 
     <!-- [ Main Content ] end -->
-
     <script src="https://appsrv1-147a1.kxcdn.com/gradient/js/vendor-all.min.js"></script>
     <script src="https://appsrv1-147a1.kxcdn.com/gradient/js/plugins/bootstrap.min.js"></script>
     <script src="https://appsrv1-147a1.kxcdn.com/gradient/js/pcoded.min.js"></script>
