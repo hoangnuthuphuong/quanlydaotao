@@ -1,33 +1,9 @@
 {% extends 'index.html' %}
+{% extends 'employee_data.html' %}
 
 {% block search %}
 <!-- Search/Filter Form -->
-<div class="container">
-    <h3>TÌM KIẾM</h3>
-    <div class="row">
-        <form action="" method="POST" class="form-inline w-100">
-            {% csrf_token %}
-            <div class="col-md-3 mb-3">
-                <label for="id">ID:</label>
-                <input type="text" class="form-control w-100" id="id" name="id" placeholder="Nhập ID" value="{{ request.POST.id|default_if_none:'' }}">
-            </div>
-            <div class="col-md-3 mb-3">
-                <label for="startdate">Ngày vào:</label>
-                <input type="date" class="form-control w-100" id="startdate" name="startdate" placeholder="Chọn ngày bắt đầu" value="{{ request.POST.startdate|default_if_none:'' }}">
-            </div>
-            <div class="col-md-3 mb-3">
-                <label for="line">Nhập chuyền:</label>
-                <input type="text" class="form-control w-100" id="line" name="line" placeholder="Nhập chuyền" value="{{ request.POST.line|default_if_none:'' }}">
-            </div>
-            <div class="col-md-3 mb-3">
-                <label for="shift">Ca:</label>
-                <input type="text" class="form-control w-100" id="shift" name="shift" placeholder="Nhập ca" value="{{ request.POST.shift|default_if_none:'' }}">
-            </div>
-            <div class="col-md-12 text-left">
-                <button type="submit" class="btn btn-primary" style="height:40px; margin-top: 20px;">Search</button>
-            </div>
-        </form>
-    </div>
+
     {% if filter_data %}
         <h3>Results:</h3>
         <table class="table table-hover" style="padding:50px">

@@ -5,14 +5,14 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="https://1000logos.net/wp-content/uploads/2021/05/Hanes-logo.png" type="image/x-icon">
-    <title>TẢI DỮ LIỆU EXCEL</title>
+    <title>TẢI DỮ LIỆU ĐƯỜNG CONG TỪ EXCEL</title>
     <link rel="stylesheet" href="https://appsrv1-147a1.kxcdn.com/gradient/css/style.min.css">
 </head>
 <body>
-    <h1>TẢI DỮ LIỆU EXCEL</h1>
-    <form method="post" enctype="multipart/form-data">
+    <h1>Upload Excel File lc</h1>
+    <form method="post" enctype="multipart/form-data" action="{% url 'uploadLC' %}">
         {% csrf_token %}
-        <input type="file" name="excel_file">
+        <input type="file" name="excel_file" accept=".xlsx">
         <button type="submit">Upload</button>
     </form>
 </body>

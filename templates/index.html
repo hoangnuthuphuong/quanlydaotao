@@ -17,6 +17,8 @@
     <!-- vendor css -->
     <link rel="stylesheet" href="https://appsrv1-147a1.kxcdn.com/gradient/css/style.min.css">
 
+
+
 </head>
 <style>
     .pcoded-main-container::before {
@@ -326,8 +328,8 @@
                 <!-- users visite end -->
 
 
-<!--                Tìm kiếm-->
-        <form action="/search/" method="POST" class="form-inline w-100">
+<!-- Tìm kiếm-->
+        <form id="form_search" class="form-inline w-100">
             {% csrf_token %}
             <div class="col-md-3 mb-3">
                 <label for="id">ID:</label>
@@ -346,55 +348,165 @@
                 <input type="text" class="form-control w-100" id="shift" name="shift" placeholder="Nhập ca" value="{{ request.POST.shift|default_if_none:'' }}">
             </div>
             <div class="col-md-12 text-left">
-                <button type="submit" class="btn btn-primary" style="height:40px; margin-top: 20px;">Search</button>
+                <button id="submit_search" type="submit" class="btn btn-primary" style="height:40px; margin-top: 20px;">Search</button>
             </div>
         </form>
-        {% if filter_data %}
-            <h3>Kết quar:</h3>
-            <table class="table table-hover" style="padding:50px">
-                <thead>
-                    <tr>
-                    <th><span>Mã nhân viên</span></th>
-                    <th><span>Họ tên</span></th>
-                    <th><span>Nhóm <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
-                    <th><span>Ca <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
-                    <th><span>Vị trí <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
-                    <th><span>Công đoạn <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
-                    <th><span>Loại đào tạo <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
-                    <th><span>Tuần bắt đầu <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
-                    <th><span>Tuần ra sản xuất <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
-                    <th><span>Kỹ thuật <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
-                    <th><span>Ngày bắt đầu</span></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for row in filter_data %}
-                        <tr>
-                            {% for cell in row.values %}
-                                <td>{{ cell }}</td>
-                            {% endfor %}
-                        </tr>
-                    {% endfor %}
 
-                </tbody>
-            </table>
-        {% else %}
-            <p>Không có dữ liệu cần tìm.</p>
-        {% endif %}
-
-
-
-                <!-- Bảng dữ liệu nhân viên start -->
                 {% block employee_data %}
                 {% endblock %}
-
 
             </div>
         </div>
 
+
+
     <!-- [ Main Content ] end -->
-    <script src="https://appsrv1-147a1.kxcdn.com/gradient/js/vendor-all.min.js"></script>
-    <script src="https://appsrv1-147a1.kxcdn.com/gradient/js/plugins/bootstrap.min.js"></script>
-    <script src="https://appsrv1-147a1.kxcdn.com/gradient/js/pcoded.min.js"></script>
+<!--    <script src="https://appsrv1-147a1.kxcdn.com/gradient/js/vendor-all.min.js"></script>-->
+<!--    <script src="https://appsrv1-147a1.kxcdn.com/gradient/js/plugins/bootstrap.min.js"></script>-->
+<!--    <script src="https://appsrv1-147a1.kxcdn.com/gradient/js/pcoded.min.js"></script>-->
+
+
     </section>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        $("#submit_search").click(function(e){
+            e.preventDefault();
+            var idnv=$("#id").val()
+            var startdate=$("#startdate").val()
+            var line=$("#line").val()
+            var shift=$("#shift").val()
+            console.log(idnv)
+            console.log(startdate)
+            console.log(shift)
+            var data_load = {'idnv': idnv,'startdate':startdate,'line':line,'shift':shift};
+            $.post("/search_danhsach_nv_ajax/", data_load, function(data, status){
+                if(status === 'success'){
+                    alert("success")
+                    console.log(data)
+
+
+                    // Clear the table - detail
+                    $('#table_dsnv tbody').empty();
+
+                    // Create the table header
+
+                    // Create the table rows
+                    var employee=data.data_table;
+                    for (var i = 0; i < employee.length; i++) {
+                        var row = '<tr>';
+                            row+='<td>'+employee[i].ID+'</td>'
+                               row+='<td>'+employee[i].Name+'</td>'
+                                row+='<td>'+employee[i].Line +'</td>'
+                                row+='<td>'+employee[i].Shift +'</td>'
+                                row+='<td>'+employee[i].Plant +'</td>'
+                                row+='<td>'+employee[i].Operation +'</td>'
+                                row+='<td>'+employee[i].Type_training +'</td>'
+                                row+='<td>'+employee[i].Week_start +'</td>'
+                                row+='<td>'+employee[i].Week_end +'</td>'
+                                row+='<td>'+employee[i].Technician +'</td>'
+                                row+='<td>'+employee[i].StartDate +'</td>'
+                                row+='<td>'
+                                row+='<a href="#" class="btn btn-sm btn-warning">Edit</a>'
+                                row+='</td>'
+                        row += '</tr>';
+                        $('#table_dsnv tbody').append(row);
+
+                    }
+                    return
+                    // table high eff
+                    // Clear the table
+                    $('#table_high_eff thead').empty();
+                    $('#table_high_eff tbody').empty();
+                    // console.log(data)
+                    // Create the table header
+                    var header = '<tr>';
+                    for (var key in data.data_table_high[0]) {
+                        header += '<th>' + key + '</th>';
+                    }
+                    header += '</tr>';
+                    $('#table_high_eff thead').append(header);
+                    $('#qty_sample').text(data.data_table_high.length)
+                    $('#avg').text(data.avg_eff)
+                    $('#avg2').text(data.avg_eff_h)
+                    $('#stdev').text(data.stdev)
+                    $('#eff_selected').text(data.eff_selected)
+                    // Create the table rows
+                    for (var i = 0; i < data.data_table_high.length; i++) {
+                        var row = '<tr>';
+                        for (var key in data.data_table_high[i]) {
+                            row += '<td>' + data.data_table_high[i][key] + '</td>';
+                        }
+                        row += '</tr>';
+                        $('#table_high_eff tbody').append(row);
+                    }
+                    // table high eff stdev
+                    // Clear the table
+                    $('#table_stdev thead').empty();
+                    $('#table_stdev tbody').empty();
+                    // Create the table header
+                    var header = '<tr>';
+                    for (var key in data.data_stdev[0]) {
+                        header += '<th>' + key + '</th>';
+                    }
+                    header += '</tr>';
+                    $('#table_stdev thead').append(header);
+                    $('#stdev_sample').text(data.data_stdev.length)
+                    // Create the table rows
+                    for (var i = 0; i < data.data_stdev.length; i++) {
+                        var row = '<tr>';
+                        for (var key in data.data_stdev[i]) {
+                            row += '<td>' + data.data_stdev[i][key] + '</td>';
+                        }
+                        row += '</tr>';
+                        $('#table_stdev tbody').append(row);
+                    }
+
+                }
+            });
+        });
+
+        $('#idnv').keypress(function(e){
+                if(e.key === "Enter"){  //Detect enter key press
+                    e.preventDefault();
+                    var idnv = $('#idnv').val();
+                    console.log(idnv)
+                    var data_load= {'idnv': idnv}
+                    $.post("/check_emp_skill/", data_load, function(data, status){
+                        if(status === 'success'){
+                            var style_detail = data.style_detail;
+                            var operation = data.operation;
+                            $('#ename').text(data.ename)
+                            $('#eline').text(data.eline)
+                            $('#eshift').text(data.eshift)
+                            //Update countries select options
+                            $('#style_detail').empty();
+                            $.each(style_detail, function(i, style){
+                                $('#style_detail').append($('<option>', {
+                                    value: style,
+                                    text : style
+                                }));
+                            });
+
+                            //Update sizes select options
+                            $('#operation').empty();
+                            $.each(operation, function(i, op){
+                                $('#operation').append($('<option>', {
+                                    value: op,
+                                    text : op
+                                }));
+                            });
+
+
+                        }
+
+                    });
+                }
+            });
+
+    });
+</script>
 </body>

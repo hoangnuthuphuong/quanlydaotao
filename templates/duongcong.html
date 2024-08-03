@@ -37,7 +37,7 @@
                     </li>
                 </ul>
                 <div class="table-responsive" style="width:100%">
-                    <table id="table_dsnv" class="table table-hover" >
+                    <table class="table table-hover" >
                         <thead>
                             <tr>
                             <th><span>Mã nhân viên</span></th>
@@ -54,8 +54,8 @@
                             <th><span>Chỉnh sửa</span></th>
                             </tr>
                         </thead>
-                        <tbody id="body_table_dsnv">
-                            {% for employee in training_data.itertuples %}
+                        <tbody>
+                            {% for employee in training_data %}
                             <tr>
                                 <td>{{ employee.ID }}</td>
                                 <td>{{ employee.Name }}</td>
