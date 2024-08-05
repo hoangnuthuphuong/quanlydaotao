@@ -1,3 +1,5 @@
+import os
+
 import MySQLdb
 import mysql.connector
 import pandas as pd
@@ -21,27 +23,76 @@ mydb = mysql.connector.connect(user="root", password="123456", host="localhost",
                                use_pure=False)
 myCursor = mydb.cursor()
 
+
 # sql = """
-# INSERT INTO DAILY_EMPLOYEE_REPORT (id, Name, Line, Shift, Date, Eff, date_no_eff, total_work_hours, stop_hours, downtime ) VALUES ("241769, BUI QUANG HAO, Line 095, RIT, ")
+# INSERT INTO DAILY_EMPLOYEE_REPORT (id, Name, Line, Shift, Date, Eff, date_no_eff, WorkHrs, stop_hours, downtime ) VALUES ("241769, BUI QUANG HAO, Line 095, RIT, ")
 # """
 
+def export_to_excel(request):
+    file_path = './data.xlsx'
 
+    if os.path.exists(file_path):
+        with open(file_path, 'rb') as excel_file:
+            response = HttpResponse(excel_file.read(),
+                                    content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            response['Content-Disposition'] = 'attachment; filename="data.xlsx"'
+            return response
+    else:
+        return HttpResponse("File not found", status=404)
 
 def display_training_data(request):
     sql = "SELECT * FROM training_data"
     mydb = mysql.connector.connect(user="root", password="123456", host="localhost", database="htsystem_data",
                                    use_pure=False)
     training_data = pd.read_sql(sql, mydb)
+    training_data.to_excel('data.xlsx', sheet_name='Training Data', index=False)
     t = loader.get_template('employee_data.html')
     context = {
         'training_data': training_data
     }
-
     print(training_data)
     return HttpResponse(t.render(context, request))
 
 
-def edit_data(request, ID):
+import datetime
+def dailyreport(request):
+
+        mydb = mysql.connector.connect(user="root", password="123456", host="localhost", database="htsystem_data", use_pure=False)
+        sql = "SELECT * FROM daily_training_report"
+        daily_training_report = pd.read_sql(sql, mydb)
+
+        # Chuyển đổi cột 'Date' sang datetime
+        daily_training_report['Datenew'] = pd.to_datetime(daily_training_report['Date'])
+
+        # Tính Weekdays, WEEK, MONTH, YEAR
+        daily_training_report['Weekdays'] = daily_training_report['Datenew'].dt.weekday + 2
+        daily_training_report['WEEK'] = daily_training_report['Datenew'].dt.isocalendar().week
+        daily_training_report['MONTH'] = daily_training_report['Datenew'].dt.month
+        daily_training_report['YEAR'] = daily_training_report['Datenew'].dt.year
+
+        # Tính toán realtime_day và date_no_eff
+        daily_training_report['realtime_day'] = daily_training_report['WorkHrs'] - daily_training_report['stop_hours'] - daily_training_report['downtime']
+        daily_training_report['date_no_eff'] = daily_training_report['realtime_day'].apply(lambda num: 1 if num < 4.87 else 0)
+
+        # Cập nhật các cột trực tiếp trong cơ sở dữ liệu
+        mycursor = mydb.cursor()
+
+        for index, row in daily_training_report.iterrows():
+            sql_update = "UPDATE daily_training_report SET Weekdays = %s, WEEK = %s, MONTH = %s, YEAR = %s, realtime_day = %s, date_no_eff = %s WHERE ID = %s AND Date = %s"
+            val = (row['Weekdays'], row['WEEK'], row['MONTH'], row['YEAR'], row['realtime_day'], row['date_no_eff'], row['ID'], row['Date'])
+            mycursor.execute(sql_update, val)
+
+        mydb.commit()
+        mydb.close()
+
+        context = {'daily_training_report': daily_training_report}
+        print(daily_training_report)
+        return render(request, 'dailyreport.html', context)
+
+
+
+
+def edit_employee_data(request, ID):
     with connection.cursor() as cursor:
         cursor.execute("SELECT * FROM training_data WHERE ID = %s", [ID])
         row = cursor.fetchone()
@@ -86,9 +137,62 @@ def edit_data(request, ID):
             messages.success(request, 'Chỉnh sửa dữ liệu thành công!')
         except Exception as e:
             messages.error(request, f"Lỗi: {e}")
-        return redirect('edit_data', ID=ID)
+        return redirect('edit_employee_data', ID=ID)
     context = {'record': record}
-    return render(request, 'edit.html', context)
+    return render(request, 'edit_employee.html', context)
+
+
+def edit_dailyreport_data(request, ID, Date):
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM daily_training_report WHERE ID = %s AND Date = %s", [ID, Date])
+        row = cursor.fetchone()
+        columns = [col[0] for col in cursor.description]
+        record = dict(zip(columns, row)) if row else None
+        connection.commit()
+
+    if not record:
+        messages.error(request, 'Record not found.')
+        return redirect('index')
+
+    if request.method == 'POST':
+        data = {
+            'Name': request.POST.get('Name'),
+            'Line': request.POST.get('Line'),
+            'Shift': request.POST.get('Shift'),
+            'Eff': request.POST.get('Eff'),
+            'date_no_eff': request.POST.get('date_no_eff'),
+            'WorkHrs': request.POST.get('WorkHrs'),
+            'stop_hours': request.POST.get('stop_hours'),
+            'downtime': request.POST.get('downtime'),
+            'Date': request.POST.get('Date'),
+            'Weekdays': request.POST.get('Weekdays'),
+            'WEEK': request.POST.get('WEEK'),
+            'MONTH': request.POST.get('MONTH'),
+            'YEAR': request.POST.get('YEAR'),
+        }
+
+        update_query = """
+            UPDATE daily_training_report
+            SET Name = %s, Line = %s, Shift = %s, Eff = %s, date_no_eff = %s, WorkHrs = %s,
+                stop_hours = %s, downtime = %s, Weekdays = %s, WEEK = %s, MONTH = %s, YEAR = %s
+            WHERE ID = %s AND Date = %s
+        """
+        params = (
+            data['Name'], data['Line'], data['Shift'], data['Eff'], data['date_no_eff'], data['WorkHrs'],
+            data['stop_hours'], data['downtime'], data['Weekdays'], data['WEEK'], data['MONTH'], data['YEAR'], ID, Date
+        )
+
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(update_query, params)
+                connection.commit()
+            messages.success(request, 'Chỉnh sửa dữ liệu thành công!')
+        except Exception as e:
+            messages.error(request, f"Lỗi: {e}")
+            return redirect('edit_dailyreport_data', ID=ID, Date=Date)
+
+    context = {'record': record}
+    return render(request, 'edit_dailyreport_data.html', context)
 
 
 @csrf_exempt
@@ -112,7 +216,7 @@ def search_danhsach_nv_ajax(request):
         if startdate != '':
             sql_search += f""" and startdate='{startdate}'"""
 
-        data_h = pd.read_sql(sql_search, engine_hbi)
+        data_h = pd.read_sql(sql_search, mydb)
         print(data_h)
         json_data = data_h.to_dict(orient='records')
 
@@ -211,11 +315,6 @@ def add_employee(request):
     return render(request, 'add_employee.html')
 
 
-# Hàm sửa các giá trị nan
-def handle_nan_values(data):
-    return data.where(pd.notnull(data), None)
-
-
 import logging
 
 logger = logging.getLogger(__name__)
@@ -250,7 +349,6 @@ def upload_excel(request):
                         row['Type_training'], row['Week_start'], row['Week_end'], row['Technician'],
                         row['StartDate']
                     )
-
                     cursor.execute(insert_query, params)
                     conn.commit()
 
@@ -264,60 +362,3 @@ def upload_excel(request):
     return render(request, 'upload_excel.html')
 
 
-def upload_LC(request):
-    if request.method == 'POST' and request.FILES.get('excel_file'):
-        excel_file = request.FILES['excel_file']
-
-        if not excel_file.name.endswith('.xlsx'):
-            return HttpResponse('File tải lên không phải là file Excel.')
-        try:
-            df = pd.read_excel(excel_file, engine='openpyxl')
-            df = df.fillna('')
-            print(df)
-            cursor = conn.cursor()
-            for index, row in df.iterrows():
-                stt = row['stt']
-                cursor.execute("SELECT COUNT(*) FROM duongcong WHERE stt = %s", [stt])
-                count = cursor.fetchone()[0]
-
-                if count == 0:
-                    insert_query = '''
-                        INSERT INTO duongcong (stt, operation, note, machine, thread, day1, day2, day3, day4, day5, day6, day7, day8, day9, day10, day11, day12, day13, day14, day15, day16, day17, day18, day19, day20, day21, day22, day23, day24, day25, day26, day27, day28, day29, day30, day31, day32, day33, day34, day35, day36, day37, day38, day39, day40, day41, day42, day43, day44, day45, day46, day47, day48, day49, day50, day51, day52, day53, day54, day55, day56, day57, day58, day59, day60, day61, day62, day63, day64, day65, day66, day67, day68, day69, day70, day71, day72, day73, day74, day75, day76, day77, day78)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                    '''
-                    params = (
-                        row['stt'], row['operation'], row['note'], row['machine'], row['thread'],
-                        row['day1'], row['day2'], row['day3'], row['day4'], row['day5'], row['day6'], row['day7'],
-                        row['day8'], row['day9'], row['day10'], row['day11'], row['day12'], row['day13'], row['day14'],
-                        row['day15'], row['day16'], row['day17'], row['day18'], row['day19'], row['day20'],
-                        row['day21'], row['day22'], row['day23'], row['day24'], row['day25'], row['day26'],
-                        row['day27'], row['day28'], row['day29'], row['day30'], row['day31'], row['day32'],
-                        row['day33'], row['day34'], row['day35'], row['day36'], row['day37'], row['day38'],
-                        row['day39'], row['day40'], row['day41'], row['day42'], row['day43'], row['day44'],
-                        row['day45'], row['day46'], row['day47'], row['day48'], row['day49'], row['day50'],
-                        row['day51'], row['day52'], row['day53'], row['day54'], row['day55'], row['day56'],
-                        row['day57'], row['day58'], row['day59'], row['day60'], row['day61'], row['day62'],
-                        row['day63'], row['day64'], row['day65'], row['day66'], row['day67'], row['day68'],
-                        row['day69'], row['day70'], row['day71'], row['day72'], row['day73'], row['day74'],
-                        row['day75'], row['day76'], row['day77'], row['day78']
-                    )
-
-                    cursor.execute(insert_query, params)
-                    conn.commit()
-
-            cursor.close()
-            conn.close()
-            return HttpResponse('Dữ liệu đã được tải lên thành công!')
-        except Exception as e:
-            conn.rollback()
-            logger.error(f'Lỗi khi tải lên file Excel: {str(e)}')
-            return HttpResponse('Có lỗi xảy ra khi tải lên file. Vui lòng kiểm tra lại.')
-    return render(request, 'uploadLC.html')
-
-
-def display_duongcong(request):
-    sql = "SELECT * FROM data_training_curse"
-    data_training_curse = pd.read_sql(sql, mydb)
-    data_training_curse = data_training_curse.to_dict(orient='records')
-    context = {'data_training_curse': data_training_curse}
-    return render(request, 'duongcong.html', context)

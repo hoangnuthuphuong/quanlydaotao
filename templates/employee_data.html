@@ -1,7 +1,31 @@
 {% extends 'index.html' %}
 
 {% block employee_data %}
+<!-- Tìm kiếm-->
+        <form id="form_search" class="form-inline w-100">
+            {% csrf_token %}
+            <div class="col-md-3 mb-3">
+                <label for="id">ID:</label>
+                <input type="text" class="form-control w-100" id="id" name="id" placeholder="Nhập ID" value="{{ request.POST.id|default_if_none:'' }}">
+            </div>
+            <div class="col-md-3 mb-3">
+                <label for="startdate">Ngày vào:</label>
+                <input type="date" class="form-control w-100" id="startdate" name="startdate" placeholder="Chọn ngày bắt đầu" value="{{ request.POST.startdate|default_if_none:'' }}">
+            </div>
+            <div class="col-md-3 mb-3">
+                <label for="line">Nhập chuyền:</label>
+                <input type="text" class="form-control w-100" id="line" name="line" placeholder="Nhập chuyền" value="{{ request.POST.line|default_if_none:'' }}">
+            </div>
+            <div class="col-md-3 mb-3">
+                <label for="shift">Ca:</label>
+                <input type="text" class="form-control w-100" id="shift" name="shift" placeholder="Nhập ca" value="{{ request.POST.shift|default_if_none:'' }}">
+            </div>
+            <div class="col-md-12 text-left">
+                <button id="submit_search" type="submit" class="btn btn-primary" style="height:40px; margin-top: 20px;">Search</button>
+                <button id="download" type="submit" class="btn  btn-outline-primary" style="height:40px; margin-top: 20px; color: white"><a href="/download">Download</a></button>
 
+            </div>
+        </form>
 
 <!-- Bảng dữ liệu nhân viên start -->
 <div class="tab-pane fade show active" style="padding-top: 15px">
@@ -24,10 +48,10 @@
                 </div>
                 <ul class="nav nav-pills nav-fill mt-3 border-bottom pb-3" id="pills-tab" role="tablist">
                     <li class="nav-item">
-                        <a class="nav-link active" id="pills-home-tab" data-bs-toggle="pill" href="#pills-home" role="tab" aria-controls="pills-home" aria-selected="true"><i class="feather icon-film m-r-5"></i> Dữ liệu nhân viên</a>
+                        <a class="nav-link active" id="employee_data-tab" data-bs-toggle="pill" href="/" role="tab" aria-controls="pills-employee_data" aria-selected="true"><i class="feather icon-film m-r-5"></i> Dữ liệu nhân viên</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="pills-profile-tab" data-bs-toggle="pill" href="#pills-profile" role="tab" aria-controls="pills-profile" aria-selected="false"><i class="feather icon-file-text m-r-5"></i> Dữ liệu đào tạo</a>
+                        <a class="nav-link" id="dailyreport-tab" data-bs-toggle="pill" href="/dailyreport" role="tab" aria-controls="pills-dailyreport" aria-selected="false"><i class="feather icon-file-text m-r-5"></i> Dữ liệu đào tạo</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" id="pills-contact-tab" data-bs-toggle="pill" href="#pills-contact" role="tab" aria-controls="pills-contact" aria-selected="false"><i class="feather icon-mail m-r-5"></i> Thống kê đào tạo</a>
@@ -36,7 +60,7 @@
                         <a class="nav-link" id="pills-news-tab" data-bs-toggle="pill" href="#pills-news" role="tab" aria-controls="pills-news" aria-selected="false"><i class="feather icon-monitor m-r-5"></i> Thông tin nghỉ việc</a>
                     </li>
                 </ul>
-                <div class="table-responsive" style="width:100%">
+                <div class="table-responsive" id="pills-employee" aria-labelledby="employee-tab" style="width:100%">
                     <table id="table_dsnv" class="table table-hover" >
                         <thead>
                             <tr>
@@ -69,14 +93,13 @@
                                 <td>{{ employee.Technician }}</td>
                                 <td>{{ employee.StartDate }}</td>
                                 <td>
-                                    <a href="{% url 'edit_data' employee.ID %}" class="btn btn-sm btn-warning">Edit</a>
+                                    <a href="{% url 'edit_employee_data' employee.ID %}" class="btn btn-sm btn-warning">Edit</a>
                                 </td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
-
             </div>
         </div>
     </div>

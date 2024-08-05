@@ -1,0 +1,126 @@
+{% extends 'index.html' %}
+
+{% block dailyreport_data %}
+<!-- Tìm kiếm-->
+        <form id="form_search_daily" class="form-inline w-100">
+            {% csrf_token %}
+            <div class="col-md-2 mb-3">
+                <label for="id">ID:</label>
+                <input type="text" class="form-control w-100" id="id" name="id" placeholder="Nhập ID" value="{{ request.POST.id|default_if_none:'' }}">
+            </div>
+            <div class="col-md-2 mb-3">
+                <label for="Line">Line:</label>
+                <input type="text" class="form-control w-100" id="Line" name="Line" placeholder="Chọn chuyền" value="{{ request.POST.Line|default_if_none:'' }}">
+            </div>
+            <div class="col-md-3 mb-3">
+                <label for="Date">Chọn ngày:</label>
+                <input type="date" class="form-control w-100" id="Date" name="Date" placeholder="Chọn ngày" value="{{ request.POST.Date|default_if_none:'' }}">
+            </div>
+            <div class="col-md-1 mb-3">
+                <label for="Weekdays">Thứ:</label>
+                <input type="text" class="form-control w-100" id="Weekdays" name="Weekdays" placeholder="Nhập thứ" value="{{ request.POST.Weekdays|default_if_none:'' }}">
+            </div>
+            <div class="col-md-1 mb-3">
+                <label for="WEEK">Tuần:</label>
+                <input type="text" class="form-control w-100" id="WEEK" name="WEEK" placeholder="Nhập tuần" value="{{ request.POST.WEEK|default_if_none:'' }}">
+            </div>
+            <div class="col-md-2 mb-3">
+                <label for="MONTH">Tháng:</label>
+                <input type="text" class="form-control w-100" id="MONTH" name="MONTH" placeholder="Nhập tháng" value="{{ request.POST.MONTH|default_if_none:'' }}">
+            </div>
+            <div class="col-md-1 mb-3">
+                <label for="YEAR">Năm:</label>
+                <input type="text" class="form-control w-100" id="YEAR" name="YEAR" placeholder="Nhập năm" value="{{ request.POST.YEAR|default_if_none:'' }}">
+            </div>
+            <div class="col-md-12 text-left">
+                <button id="submit_search" type="submit" class="btn btn-primary" style="height:40px; margin-top: 20px;">Search</button>
+            </div>
+        </form>
+
+<!-- Bảng dữ liệu nhân viên start -->
+<div class="tab-pane fade show active" style="padding-top: 15px">
+    <div class="card table-card">
+        <div class="card-header-right">
+            <div class="card-header">
+                <h5>Quản lý nhân viên</h5>
+                <div class="card-header-right">
+                    <div class="btn-group card-option">
+                        <button type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="feather icon-more-horizontal"></i>
+                        </button>
+                        <ul class="list-unstyled card-option dropdown-menu dropdown-menu-end">
+                            <li class="dropdown-item full-card"><a href="#"><span><i class="feather icon-maximize"></i> maximize</span><span style="display:none"><i class="feather icon-minimize"></i> Restore</span></a></li>
+                            <li class="dropdown-item minimize-card"><a href="#"><span><i class="feather icon-minus"></i> collapse</span><span style="display:none"><i class="feather icon-plus"></i> expand</span></a></li>
+                            <li class="dropdown-item reload-card"><a href="#"><i class="feather icon-refresh-cw"></i> reload</a></li>
+                            <li class="dropdown-item close-card"><a href="#"><i class="feather icon-trash"></i> remove</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <ul class="nav nav-pills nav-fill mt-3 border-bottom pb-3" id="pills-tab" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link" id="employee_data-tab" data-bs-toggle="pill" href="/" role="tab" aria-controls="pills-employee_data" aria-selected="false"><i class="feather icon-film m-r-5"></i> Dữ liệu nhân viên</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" id="dailyreport-tab" data-bs-toggle="pill" href="/dailyreport" role="tab" aria-controls="pills-dailyreport" aria-selected="true"><i class="feather icon-file-text m-r-5"></i> Dữ liệu đào tạo</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="pills-contact-tab" data-bs-toggle="pill" href="#pills-contact" role="tab" aria-controls="pills-contact" aria-selected="false"><i class="feather icon-mail m-r-5"></i> Thống kê đào tạo</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="pills-news-tab" data-bs-toggle="pill" href="#pills-news" role="tab" aria-controls="pills-news" aria-selected="false"><i class="feather icon-monitor m-r-5"></i> Thông tin nghỉ việc</a>
+                    </li>
+                </ul>
+                <div class="table-responsive" style="width:100%">
+                    <table id="table_dailyreport" class="table table-hover" >
+                        <thead>
+                            <tr>
+                            <th><span>Mã nhân viên</span></th>
+                            <th><span>Họ tên</span></th>
+                            <th><span>Line</span></th>
+                            <th><span>Shift</span></th>
+                            <th><span>Hiệu suất</span></th>
+                            <th><span>Ngày không HS</span></th>
+                            <th><span>Giờ làm thực tế <a class="help" data-toggle="popover" title="(=tổng giờ làm - giờ ngưng việc - downtime)" data-content="Giờ làm thực tế trong ngày của nhân viên (=tổng giờ làm - giờ ngưng việc - downtime)"><i class="feather icon-help-circle f-16"></i></a></span></th>
+                            <th><span>Giờ làm</span></th>
+                            <th><span>Giờ ngưng việc</span></th>
+                            <th><span>Downtime</span></th>
+                            <th><span>Ngày</span></th>
+                            <th><span>Thứ</span></th>
+                            <th><span>Tuần</span></th>
+                            <th><span>Tháng</span></th>
+                            <th><span>Năm</span></th>
+                            <th><span>Chỉnh sửa</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="body_table_dailyreport">
+                            {% for employee in daily_training_report.itertuples %}
+                            <tr>
+                                <td>{{ employee.ID }}</td>
+                                <td>{{ employee.Name }}</td>
+                                <td>{{ employee.Line }}</td>
+                                <td>{{ employee.Shift }}</td>
+                                <td>{{ employee.Eff }}</td>
+                                <td>{{ employee.date_no_eff }}</td>
+                                <td>{{ employee.realtime_day }}</td>
+                                <td>{{ employee.WorkHrs }}</td>
+                                <td>{{ employee.stop_hours }}</td>
+                                <td>{{ employee.downtime }}</td>
+                                <td>{{ employee.Date }}</td>
+                                <td>{{ employee.Weekdays }}</td>
+                                <td>{{ employee.WEEK }}</td>
+                                <td>{{ employee.MONTH }}</td>
+                                <td>{{ employee.YEAR }}</td>
+                                <td>
+                                    <a href="{% url 'edit_dailyreport_data' employee.ID employee.Date %}" class="btn btn-sm btn-warning">Edit</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
