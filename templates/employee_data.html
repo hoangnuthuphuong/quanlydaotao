@@ -22,8 +22,12 @@
             </div>
             <div class="col-md-12 text-left">
                 <button id="submit_search" type="submit" class="btn btn-primary" style="height:40px; margin-top: 20px;">Search</button>
-                <button id="download" type="submit" class="btn  btn-outline-primary" style="height:40px; margin-top: 20px; color: white"><a href="/download">Download</a></button>
-
+                <button id="download" type="button" class="btn btn-outline-primary" style="height:40px; margin-top: 20px; color: white">
+                    <a href="/download">Download</a>
+                </button>
+                <button id="upload_excel_data" type="button" class="btn btn-outline-primary" style="height:40px; margin-top: 20px;">
+                    <a href="/upload">Upload excel</a>
+                </button>
             </div>
         </form>
 
@@ -54,10 +58,10 @@
                         <a class="nav-link" id="dailyreport-tab" data-bs-toggle="pill" href="/dailyreport" role="tab" aria-controls="pills-dailyreport" aria-selected="false"><i class="feather icon-file-text m-r-5"></i> Dữ liệu đào tạo</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="pills-contact-tab" data-bs-toggle="pill" href="#pills-contact" role="tab" aria-controls="pills-contact" aria-selected="false"><i class="feather icon-mail m-r-5"></i> Thống kê đào tạo</a>
+                        <a class="nav-link" id="pills-contact-tab" data-bs-toggle="pill" href="#pills-contact" role="tab" aria-controls="pills-contact" aria-selected="false"><i class="feather icon-mail m-r-5"></i> Thống kê đào tạo (tuần)</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="pills-news-tab" data-bs-toggle="pill" href="#pills-news" role="tab" aria-controls="pills-news" aria-selected="false"><i class="feather icon-monitor m-r-5"></i> Thông tin nghỉ việc</a>
+                        <a class="nav-link" id="pills-news-tab" data-bs-toggle="pill" href="#pills-news" role="tab" aria-controls="pills-news" aria-selected="false"><i class="feather icon-monitor m-r-5"></i> Kết quả đào tạo</a>
                     </li>
                 </ul>
                 <div class="table-responsive" id="pills-employee" aria-labelledby="employee-tab" style="width:100%">

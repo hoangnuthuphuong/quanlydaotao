@@ -1,8 +1,8 @@
 {% extends 'index.html' %}
 
-{% block dailyreport_data %}
+{% block week_report %}
 <!-- Tìm kiếm-->
-        <form id="form_search_daily" class="form-inline w-100">
+        <form id="form_search_baocaotuan" class="form-inline w-100">
             {% csrf_token %}
             <div class="col-md-2 mb-3">
                 <label for="id">ID:</label>
@@ -45,7 +45,7 @@
     <div class="card table-card">
         <div class="card-header-right">
             <div class="card-header">
-                <h5>Quản lý nhân viên</h5>
+                <h5>Thống kê đào tạo - Tuần</h5>
                 <div class="card-header-right">
                     <div class="btn-group card-option">
                         <button type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -64,10 +64,10 @@
                         <a class="nav-link" id="employee_data-tab" data-bs-toggle="pill" href="/" role="tab" aria-controls="pills-employee_data" aria-selected="false"><i class="feather icon-film m-r-5"></i> Dữ liệu nhân viên</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" id="dailyreport-tab" data-bs-toggle="pill" href="/dailyreport" role="tab" aria-controls="pills-dailyreport" aria-selected="true"><i class="feather icon-file-text m-r-5"></i> Dữ liệu đào tạo</a>
+                        <a class="nav-link " id="dailyreport-tab" data-bs-toggle="pill" href="/dailyreport" role="tab" aria-controls="pills-dailyreport" aria-selected="false"><i class="feather icon-file-text m-r-5"></i> Dữ liệu đào tạo</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="pills-contact-tab" data-bs-toggle="pill" href="#pills-contact" role="tab" aria-controls="pills-contact" aria-selected="false"><i class="feather icon-mail m-r-5"></i> Thống kê đào tạo (tuần)</a>
+                        <a class="nav-link active" id="weekreport-tab" data-bs-toggle="pill" href="/weekreport" role="tab" aria-controls="pills-weekreport" aria-selected="true"><i class="feather icon-mail m-r-5"></i> Thống kê đào tạo (tuần)</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" id="pills-news-tab" data-bs-toggle="pill" href="#pills-news" role="tab" aria-controls="pills-news" aria-selected="false"><i class="feather icon-monitor m-r-5"></i> Kết quả đào tạo</a>
@@ -79,37 +79,33 @@
                             <tr>
                             <th><span>Mã nhân viên</span></th>
                             <th><span>Họ tên</span></th>
-                            <th><span>Line</span></th>
-                            <th><span>Shift</span></th>
-                            <th><span>Hiệu suất</span></th>
-                            <th><span>Ngày không HS</span></th>
-                            <th><span>Giờ làm thực tế <a class="help" data-toggle="popover" title="(=tổng giờ làm - giờ ngưng việc - downtime)" data-content="Giờ làm thực tế trong ngày của nhân viên (=tổng giờ làm - giờ ngưng việc - downtime)"><i class="feather icon-help-circle f-16"></i></a></span></th>
-                            <th><span>Giờ làm</span></th>
-                            <th><span>Giờ ngưng việc</span></th>
-                            <th><span>Downtime</span></th>
-                            <th><span>Ngày</span></th>
-                            <th><span>Thứ</span></th>
+                            <th><span>Chất lượng</span></th>
+                            <th><span>Chỉ tiêu CL</span></th>
+                            <th><span>Đánh giá CL</span></th>
+                            <th><span>Hiệu suất (tuần)</span></th>
+                            <th><span>Chỉ tiêu HS <a class="help" data-toggle="popover" title="(=tổng giờ làm - giờ ngưng việc - downtime)" data-content="Giờ làm thực tế trong ngày của nhân viên (=tổng giờ làm - giờ ngưng việc - downtime)"><i class="feather icon-help-circle f-16"></i></a></span></th>
+                            <th><span>Đánh giá HS</span></th>
+                            <th><span>Ngày đào tạo</span></th>
+                            <th><span>Tuần LC</span></th>
                             <th><span>Tuần</span></th>
                             <th><span>Tháng</span></th>
                             <th><span>Năm</span></th>
                             <th><span>Chỉnh sửa</span></th>
                             </tr>
                         </thead>
-                        <tbody id="body_table_dailyreport">
-                            {% for employee in daily_training_report.itertuples %}
+                        <tbody id="body_table_weekreport">
+                            {% for employee in week_training_report.itertuples %}
                             <tr>
                                 <td>{{ employee.ID }}</td>
                                 <td>{{ employee.Name }}</td>
-                                <td>{{ employee.Line }}</td>
-                                <td>{{ employee.Shift }}</td>
-                                <td>{{ employee.Eff }}</td>
-                                <td>{{ employee.date_no_eff }}</td>
-                                <td>{{ employee.realtime_day }}</td>
-                                <td>{{ employee.WorkHrs }}</td>
-                                <td>{{ employee.stop_hours }}</td>
-                                <td>{{ employee.downtime }}</td>
-                                <td>{{ employee.Date }}</td>
-                                <td>{{ employee.Weekdays }}</td>
+                                <td>{{ employee.Chatluong }}</td>
+                                <td>{{ employee.ChitieuCL }}</td>
+                                <td>{{ employee.DanhgiaCL }}</td>
+                                <td>{{ employee.Hieusuat_tuan }}</td>
+                                <td>{{ employee.ChitieuHS }}</td>
+                                <td>{{ employee.DanhgiaHS }}</td>
+                                <td>{{ employee.Ngaydaotao }}</td>
+                                <td>{{ employee.TuanLC }}</td>
                                 <td>{{ employee.WEEK }}</td>
                                 <td>{{ employee.MONTH }}</td>
                                 <td>{{ employee.YEAR }}</td>

@@ -1,19 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="https://1000logos.net/wp-content/uploads/2021/05/Hanes-logo.png" type="image/x-icon">
-    <title>TẢI DỮ LIỆU EXCEL</title>
-    <link rel="stylesheet" href="https://appsrv1-147a1.kxcdn.com/gradient/css/style.min.css">
-</head>
-<body>
-    <h1>TẢI DỮ LIỆU EXCEL</h1>
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        <input type="file" name="excel_file">
-        <button type="submit">Upload</button>
-    </form>
-</body>
-</html>
+<!--<!DOCTYPE html>-->
+<!--<html lang="en">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <meta http-equiv="X-UA-Compatible" content="IE=edge">-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--    <link rel="icon" href="https://1000logos.net/wp-content/uploads/2021/05/Hanes-logo.png" type="image/x-icon">-->
+<!--    <title>TẢI DỮ LIỆU EXCEL</title>-->
+<!--    <link rel="stylesheet" href="https://appsrv1-147a1.kxcdn.com/gradient/css/style.min.css">-->
+<!--</head>-->
+<!--<body>-->
+
+{% extends 'index.html' %}
+{% block upload_excel_data %}
+<hr>
+<div class="col-md-3 col-md-12 col-md-3" >
+	<div class="card text-center" style="align-items: center;">
+		<div class="card-header">
+			<h2 style="color: #005B9A;">
+			  TẢI DỮ LIỆU LÊN TỪ EXCEL
+			</h2>
+		</div>
+		<ul>
+			{% if messages %}
+				{% for message in messages %}
+					<p{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</p>
+				{% endfor %}
+			{% endif %}
+		</ul>
+		<form method="post" enctype="multipart/form-data" style="color: #005B9A;padding:10px">
+			{% csrf_token %}
+			<input type="file" name="excel_file" style="color: #005B9A;padding:10px">
+			<button type="submit" class="btn btn-primary">Tải lên</button>
+		</form>
+	</div>
+</div>
+{% endblock %}

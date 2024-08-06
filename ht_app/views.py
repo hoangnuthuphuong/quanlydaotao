@@ -17,8 +17,7 @@ from .forms import SearchForm
 # mydb = MySQLdb.connect(host=hostname, user='root', passwd='123456', database="htsystem_data")
 # myCursor = mydb.cursor()
 
-conn = mysql.connector.connect(user="root", password="123456", host="localhost", database="htsystem_data",
-                               use_pure=False)
+conn = mysql.connector.connect(user="root", password="123456", host="localhost", database="htsystem_data",use_pure=False)
 mydb = mysql.connector.connect(user="root", password="123456", host="localhost", database="htsystem_data",
                                use_pure=False)
 myCursor = mydb.cursor()
@@ -45,7 +44,7 @@ def display_training_data(request):
     mydb = mysql.connector.connect(user="root", password="123456", host="localhost", database="htsystem_data",
                                    use_pure=False)
     training_data = pd.read_sql(sql, mydb)
-    training_data.to_excel('data.xlsx', sheet_name='Training Data', index=False)
+    training_data.to_excel('data.xlsx', sheet_name='Dữ liệu đào tạo', index=False)
     t = loader.get_template('employee_data.html')
     context = {
         'training_data': training_data
@@ -84,13 +83,22 @@ def dailyreport(request):
 
         mydb.commit()
         mydb.close()
-
+        daily_training_report.to_excel('data.xlsx', sheet_name='Dữ liệu hàng ngày', index=False)
         context = {'daily_training_report': daily_training_report}
         print(daily_training_report)
         return render(request, 'dailyreport.html', context)
 
-
-
+def week_report(request):
+    sql = "SELECT * FROM week_training_report"
+    mydb = mysql.connector.connect(user="root", password="123456", host="localhost", database="htsystem_data", use_pure=False)
+    week_training_report = pd.read_sql(sql, mydb)
+    week_training_report.to_excel('data.xlsx', sheet_name='Dữ liệu đào tạo tuần', index=False)
+    t = loader.get_template('week_report.html')
+    context = {
+        'week_training_report': week_training_report
+    }
+    print(week_training_report)
+    return HttpResponse(t.render(context, request))
 
 def edit_employee_data(request, ID):
     with connection.cursor() as cursor:
@@ -105,6 +113,18 @@ def edit_employee_data(request, ID):
         return redirect('index')
 
     if request.method == 'POST':
+        if 'delete' in request.POST:
+            try:
+                with connection.cursor() as cursor:
+                    cursor.execute("DELETE FROM training_data WHERE ID = %s", [ID])
+                    connection.commit()
+                messages.success(request, 'Record deleted successfully.')
+                return redirect('index')
+            except Exception as e:
+                messages.error(request, f"Error deleting record: {e}")
+                return redirect('edit_employee_data', ID=ID)
+
+
         data = {
             'Name': request.POST.get('Name'),
             'Line': request.POST.get('Line'),
@@ -217,6 +237,7 @@ def search_danhsach_nv_ajax(request):
             sql_search += f""" and startdate='{startdate}'"""
 
         data_h = pd.read_sql(sql_search, mydb)
+        data_h.to_excel('data.xlsx', sheet_name='Dữ liệu nhân viên', index=False)
         print(data_h)
         json_data = data_h.to_dict(orient='records')
 
@@ -307,7 +328,7 @@ def add_employee(request):
 
                     cursor.execute(insert_query, params)
                     connection.commit()
-                    messages.success(request, 'Employee added successfully!')
+                    messages.success(request, 'Thêm dữ lệu thành công!')
                     return redirect('index')
 
         except Exception as e:
@@ -316,7 +337,6 @@ def add_employee(request):
 
 
 import logging
-
 logger = logging.getLogger(__name__)
 
 
@@ -332,6 +352,7 @@ def upload_excel(request):
             # df = handle_nan_values(df)
             df = df.fillna('')
             print(df)
+            conn = mysql.connector.connect(user="root", password="123456", host="localhost", database="htsystem_data",use_pure=False)
             cursor = conn.cursor()
             for index, row in df.iterrows():
                 ID = row['ID']
@@ -354,7 +375,8 @@ def upload_excel(request):
 
             cursor.close()
             conn.close()
-            return HttpResponse('Dữ liệu đã được tải lên thành công!')
+            messages.success(request, 'Dữ liệu đã được tải lên thành công!')
+            # return HttpResponse('Dữ liệu đã được tải lên thành công!')
         except Exception as e:
             conn.rollback()
             logger.error(f'Lỗi khi tải lên file Excel: {str(e)}')
