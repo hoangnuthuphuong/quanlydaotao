@@ -74,23 +74,25 @@
                     </li>
                 </ul>
                 <div class="table-responsive" style="width:100%">
-                    <table id="table_dailyreport" class="table table-hover" >
+                    <table id="table_weekreport" class="table table-hover" >
                         <thead>
                             <tr>
                             <th><span>Mã nhân viên</span></th>
                             <th><span>Họ tên</span></th>
-                            <th><span>Chất lượng</span></th>
-                            <th><span>Chỉ tiêu CL</span></th>
-                            <th><span>Đánh giá CL</span></th>
-                            <th><span>Hiệu suất (tuần)</span></th>
-                            <th><span>Chỉ tiêu HS <a class="help" data-toggle="popover" title="(=tổng giờ làm - giờ ngưng việc - downtime)" data-content="Giờ làm thực tế trong ngày của nhân viên (=tổng giờ làm - giờ ngưng việc - downtime)"><i class="feather icon-help-circle f-16"></i></a></span></th>
-                            <th><span>Đánh giá HS</span></th>
-                            <th><span>Ngày đào tạo</span></th>
-                            <th><span>Tuần LC</span></th>
                             <th><span>Tuần</span></th>
                             <th><span>Tháng</span></th>
                             <th><span>Năm</span></th>
-                            <th><span>Chỉnh sửa</span></th>
+                            <th><span>Công đoạn</span></th>
+                            <th><span>Chất lượng</span></th>
+                            <th><span>Chỉ tiêu CL</span></th>
+                            <th><span>Đánh giá CL</span></th>
+                            <th><span>Giờ làm (tuần)</span></th>
+                            <th><span>Tổng thời gian làm việc</span></th>
+                            <th><span>Ngày đào tạo</span></th>
+                            <th><span>Tuần LC</span></th>
+                            <th><span>Hiệu suất (tuần)</span></th>
+                            <th><span>Chỉ tiêu HS <a class="help" data-toggle="popover" title="(=tổng giờ làm - giờ ngưng việc - downtime)" data-content="Giờ làm thực tế trong ngày của nhân viên (=tổng giờ làm - giờ ngưng việc - downtime)"><i class="feather icon-help-circle f-16"></i></a></span></th>
+                            <th><span>Đánh giá HS</span></th>
                             </tr>
                         </thead>
                         <tbody id="body_table_weekreport">
@@ -98,26 +100,25 @@
                             <tr>
                                 <td>{{ employee.ID }}</td>
                                 <td>{{ employee.Name }}</td>
-                                <td>{{ employee.Chatluong }}</td>
-                                <td>{{ employee.ChitieuCL }}</td>
-                                <td>{{ employee.DanhgiaCL }}</td>
-                                <td>{{ employee.Hieusuat_tuan }}</td>
-                                <td>{{ employee.ChitieuHS }}</td>
-                                <td>{{ employee.DanhgiaHS }}</td>
-                                <td>{{ employee.Ngaydaotao }}</td>
-                                <td>{{ employee.TuanLC }}</td>
                                 <td>{{ employee.WEEK }}</td>
                                 <td>{{ employee.MONTH }}</td>
                                 <td>{{ employee.YEAR }}</td>
-                                <td>
-                                    <a href="{% url 'edit_dailyreport_data' employee.ID employee.Date %}" class="btn btn-sm btn-warning">Edit</a>
-                                </td>
+                                <td>{{ employee.Operation }}</td>
+                                <td>{{ employee.chatluong }}</td>
+                                <td>{{ employee.ChitieuCL }}</td>
+                                <td>{{ employee.DanhgiaCL }}</td>
+                                <td>{{ employee.total_time_week }}</td>
+                                <td>{{ employee.total_time }}</td>
+                                <td>{{ employee.Ngaydaotao }}</td>
+                                <td>{{ employee.TuanLC }}</td>
+                                <td>{{ employee.Hieusuat_tuan }}</td>
+                                <td>{{ employee.ChitieuHS }}</td>
+                                <td>{{ employee.DanhgiaHS }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
-
             </div>
         </div>
     </div>

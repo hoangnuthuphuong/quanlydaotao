@@ -1,5 +1,4 @@
 import os
-
 import MySQLdb
 import mysql.connector
 import pandas as pd
@@ -10,13 +9,10 @@ from django.shortcuts import render, redirect
 from django.template import loader
 from django.views.decorators.csrf import csrf_exempt
 from .forms import SearchForm
+from sqlalchemy import create_engine
 
 # hostname = 'localhost'
-# engine_hbi = create_engine('mysql+mysqlconnector://root:123456@localhost:3306/htsystem_data', echo=False)
-# mydb = mysql.connector.connect(host=hostname, user='root', passwd='123456', database="htsystem_data")
-# mydb = MySQLdb.connect(host=hostname, user='root', passwd='123456', database="htsystem_data")
-# myCursor = mydb.cursor()
-
+engine_hbi = create_engine('mysql+mysqlconnector://root:123456@localhost:3306/htsystem_data', echo=False)
 conn = mysql.connector.connect(user="root", password="123456", host="localhost", database="htsystem_data",use_pure=False)
 mydb = mysql.connector.connect(user="root", password="123456", host="localhost", database="htsystem_data",
                                use_pure=False)
@@ -55,10 +51,9 @@ def display_training_data(request):
 
 import datetime
 def dailyreport(request):
-
         mydb = mysql.connector.connect(user="root", password="123456", host="localhost", database="htsystem_data", use_pure=False)
         sql = "SELECT * FROM daily_training_report"
-        daily_training_report = pd.read_sql(sql, mydb)
+        daily_training_report = pd.read_sql(sql, mydb).fillna(0)
 
         # Chuyển đổi cột 'Date' sang datetime
         daily_training_report['Datenew'] = pd.to_datetime(daily_training_report['Date'])
@@ -70,7 +65,7 @@ def dailyreport(request):
         daily_training_report['YEAR'] = daily_training_report['Datenew'].dt.year
 
         # Tính toán realtime_day và date_no_eff
-        daily_training_report['realtime_day'] = daily_training_report['WorkHrs'] - daily_training_report['stop_hours'] - daily_training_report['downtime']
+        daily_training_report['realtime_day'] = (daily_training_report['WorkHrs'] - daily_training_report['stop_hours'] - daily_training_report['downtime']).round(1)
         daily_training_report['date_no_eff'] = daily_training_report['realtime_day'].apply(lambda num: 1 if num < 4.87 else 0)
 
         # Cập nhật các cột trực tiếp trong cơ sở dữ liệu
@@ -88,17 +83,51 @@ def dailyreport(request):
         print(daily_training_report)
         return render(request, 'dailyreport.html', context)
 
+
 def week_report(request):
-    sql = "SELECT * FROM week_training_report"
-    mydb = mysql.connector.connect(user="root", password="123456", host="localhost", database="htsystem_data", use_pure=False)
-    week_training_report = pd.read_sql(sql, mydb)
-    week_training_report.to_excel('data.xlsx', sheet_name='Dữ liệu đào tạo tuần', index=False)
-    t = loader.get_template('week_report.html')
-    context = {
-        'week_training_report': week_training_report
-    }
-    print(week_training_report)
-    return HttpResponse(t.render(context, request))
+    mydb = mysql.connector.connect(user="root", password="123456", host="localhost", database="htsystem_data",use_pure=False)
+    sql = "SELECT t1.*, t2.Operation FROM daily_training_report AS t1 left join training_data AS t2 ON t1.ID = t2.ID"
+    data = pd.read_sql(sql, mydb)
+
+    duongcong_sql = "SELECT * FROM data_training_curse"
+    duongcong = pd.read_sql(duongcong_sql, mydb)
+
+    week = data.groupby(['ID', 'Name', 'WEEK', 'MONTH', 'YEAR', 'Operation'])['chatluong'].sum().reset_index()
+    week['ChitieuCL'] = 3
+    week['DanhgiaCL'] = 'Đạt'
+    week.loc[week['chatluong'] > week['ChitieuCL'], 'DanhgiaCL'] = 'Không đạt'
+
+    # tính tổng thời gian làm việc trong tuần
+    tonggio_tuan = data.groupby(['ID', 'WEEK', 'YEAR'])['WorkHrs'].sum().reset_index().rename(
+        columns={'WorkHrs': 'total_time_week'}).round(1)
+    # tổng thời gian đến hiện tại
+    tonggio_tuan['total_time'] = tonggio_tuan.groupby(['ID', 'YEAR'])['total_time_week'].cumsum().reset_index()[
+        'total_time_week'].round(1)
+    # # Tính ngày đào tạo
+    # tonggio_tuan['Ngay'] = (tonggio_tuan['WorkHrsNow']/7.37)
+    tonggio_tuan['Ngaydaotao'] = (tonggio_tuan['total_time'] // 7.37)
+    # điều kiện tính ngày đào tạo
+    tonggio_tuan.loc[
+        ((tonggio_tuan['total_time'] / 7.37) - (tonggio_tuan['total_time'] // 7.37)) > (5 / 7.37), 'Ngaydaotao'] = (tonggio_tuan['total_time'] // 7.37) + 1
+    week = pd.merge(week, tonggio_tuan, how='left', left_on=['ID', 'WEEK', 'YEAR'], right_on=['ID', 'WEEK', 'YEAR'])
+    week['TuanLC'] = (week['Ngaydaotao'] / 6).round(2)
+    week = pd.merge(week,
+                    data[data['date_no_eff'] == 0].groupby(['ID', 'WEEK', 'YEAR'])['Eff'].mean().round(1).reset_index(),
+                    how='left', left_on=['ID', 'WEEK', 'YEAR'], right_on=['ID', 'WEEK', 'YEAR']).rename(columns={'Eff': 'Hieusuat_tuan'})
+    week = pd.merge(week, duongcong[['OPERATION', 'COUNT_DAYS', 'EFF_CURVE_BY_DATE']], how='left',
+                    left_on=['Operation', 'Ngaydaotao'], right_on=['OPERATION', 'COUNT_DAYS'])
+
+    del week['OPERATION'], week['COUNT_DAYS']
+    week['DanhgiaHS'] = 'Đạt'
+    week.loc[week['Hieusuat_tuan'] < week['EFF_CURVE_BY_DATE'], 'DanhgiaHS'] = 'Không đạt'
+    week = week.rename(columns={'EFF_CURVE_BY_DATE': 'ChitieuHS'})
+
+    week.to_sql('week_training_report', con=engine_hbi, if_exists='replace', index=False)
+    week.to_excel('data.xlsx', sheet_name='Dữ liệu hàng ngày', index=False)
+    context = {'week_training_report': week}
+    print(week)
+    return render(request, 'week_report.html', context)
+
 
 def edit_employee_data(request, ID):
     with connection.cursor() as cursor:
@@ -184,6 +213,7 @@ def edit_dailyreport_data(request, ID, Date):
             'WorkHrs': request.POST.get('WorkHrs'),
             'stop_hours': request.POST.get('stop_hours'),
             'downtime': request.POST.get('downtime'),
+            'chatluong': request.POST.get('chatluong'),
             'Date': request.POST.get('Date'),
             'Weekdays': request.POST.get('Weekdays'),
             'WEEK': request.POST.get('WEEK'),
@@ -194,12 +224,12 @@ def edit_dailyreport_data(request, ID, Date):
         update_query = """
             UPDATE daily_training_report
             SET Name = %s, Line = %s, Shift = %s, Eff = %s, date_no_eff = %s, WorkHrs = %s,
-                stop_hours = %s, downtime = %s, Weekdays = %s, WEEK = %s, MONTH = %s, YEAR = %s
+                stop_hours = %s, downtime = %s, chatluong = %s, Weekdays = %s, WEEK = %s, MONTH = %s, YEAR = %s
             WHERE ID = %s AND Date = %s
         """
         params = (
-            data['Name'], data['Line'], data['Shift'], data['Eff'], data['date_no_eff'], data['WorkHrs'],
-            data['stop_hours'], data['downtime'], data['Weekdays'], data['WEEK'], data['MONTH'], data['YEAR'], ID, Date
+            data['Name'], data['Line'], data['Shift'], data['Eff'], data['date_no_eff'], data['WorkHrs'], data['stop_hours'],
+            data['downtime'], data['chatluong'], data['Weekdays'], data['WEEK'], data['MONTH'], data['YEAR'], ID, Date
         )
 
         try:
