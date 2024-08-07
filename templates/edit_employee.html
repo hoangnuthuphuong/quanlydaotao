@@ -30,7 +30,11 @@
         </div>
         <div>
             <label for="Shift">Shift:</label>
-            <input type="text" id="Shift" name="Shift" value="{{ record.Shift }}">
+            <select id="Shift" name="Shift">
+                <option value="{{ record.Shift }}">{{ record.Shift }}</option>
+                <option value="BALI">BALI</option>
+                <option value="RIT">RIT</option>
+            </select>
         </div>
         <div>
             <label for="Plant">Plant:</label>
@@ -38,11 +42,20 @@
         </div>
         <div>
             <label for="Operation">Operation:</label>
-            <input type="text" id="Operation" name="Operation" value="{{ record.Operation }}">
+            <select id="Operation" name="Operation">
+                <option value="{{ record.Operation }}">{{ record.Operation }}</option>
+                    {% for option in congdoan %}
+                        <option value="{{ option }}">{{ option }}</option>
+                    {% endfor %}
+            </select>
         </div>
         <div>
             <label for="Type_training">Type of Training:</label>
-            <input type="text" id="Type_training" name="Type_training" value="{{ record.Type_training }}">
+            <select id="Type_training" name="Type_training">
+                <option value="{{ record.Type_training }}">{{ record.Type_training }}</option>
+                <option value="daotaomoi">Đào tạo mới</option>
+                <option value="daotaocheo">Đào tạo chéo</option>
+            </select>
         </div>
         <div>
             <label for="Week_start">Week Start:</label>
@@ -60,7 +73,10 @@
             <label for="StartDate">StartDate:</label>
             <input type="date" id="StartDate" name="StartDate" value="{{ record.StartDate }}">
         </div>
-
+        <div>
+            <label for="NgayraSX">NgayraSX:</label>
+            <input type="date" id="NgayraSX" name="NgayraSX" value="{{ record.NgayraSX }}">
+        </div>
         <div>
             <button type="submit">Update</button>
             <button type="submit" name="delete" value="true" onclick="return confirm('Bạn có chắc chắn muốn xóa nhân viên này không?');">Delete</button>

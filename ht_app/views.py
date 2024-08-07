@@ -19,9 +19,6 @@ mydb = mysql.connector.connect(user="root", password="123456", host="localhost",
 myCursor = mydb.cursor()
 
 
-# sql = """
-# INSERT INTO DAILY_EMPLOYEE_REPORT (id, Name, Line, Shift, Date, Eff, date_no_eff, WorkHrs, stop_hours, downtime ) VALUES ("241769, BUI QUANG HAO, Line 095, RIT, ")
-# """
 
 def export_to_excel(request):
     file_path = './data.xlsx'
@@ -40,6 +37,12 @@ def display_training_data(request):
     mydb = mysql.connector.connect(user="root", password="123456", host="localhost", database="htsystem_data",
                                    use_pure=False)
     training_data = pd.read_sql(sql, mydb)
+    training_data['StartDaten'] = pd.to_datetime(training_data['StartDate'])
+    training_data['Week_start'] = training_data['StartDaten'].dt.isocalendar().week
+
+    training_data['NgayraSXn'] = pd.to_datetime(training_data['NgayraSX'])
+    training_data['Week_end'] = training_data['NgayraSXn'].dt.isocalendar().week
+
     training_data.to_excel('data.xlsx', sheet_name='Dữ liệu đào tạo', index=False)
     t = loader.get_template('employee_data.html')
     context = {
@@ -165,18 +168,19 @@ def edit_employee_data(request, ID):
             'Week_end': request.POST.get('Week_end'),
             'Technician': request.POST.get('Technician'),
             'StartDate': request.POST.get('StartDate'),
+            'NgayraSX': request.POST.get('NgayraSX'),
         }
 
         # Update the data
         update_query = """
             UPDATE training_data
             SET Name = %s, Line = %s, Shift = %s, Plant = %s, Operation = %s,
-                Type_training = %s, Week_start = %s, Week_end = %s, Technician = %s, StartDate = %s
+                Type_training = %s, Week_start = %s, Week_end = %s, Technician = %s, StartDate = %s, NgayraSX = %s
             WHERE ID = %s
         """
         params = (
-            data['Name'], data['Line'], data['Shift'], data['Plant'], data['Operation'],
-            data['Type_training'], data['Week_start'], data['Week_end'], data['Technician'], data['StartDate'], ID
+            data['Name'], data['Line'], data['Shift'], data['Plant'], data['Operation'], data['Type_training'],
+            data['Week_start'], data['Week_end'], data['Technician'], data['StartDate'], data['NgayraSX'], ID
         )
 
         try:
@@ -187,7 +191,10 @@ def edit_employee_data(request, ID):
         except Exception as e:
             messages.error(request, f"Lỗi: {e}")
         return redirect('edit_employee_data', ID=ID)
-    context = {'record': record}
+
+    congdoan = ['BIND PANEL', 'SEW BAND', 'ATTACH BUTTON', 'BIND LEG']
+
+    context = {'record': record, 'congdoan': congdoan}
     return render(request, 'edit_employee.html', context)
 
 
@@ -379,7 +386,6 @@ def upload_excel(request):
         try:
             df = pd.read_excel(excel_file, engine='openpyxl')
             # df['StartDate'] = df['StartDate'].fillna('00/00/0000')
-            # df = handle_nan_values(df)
             df = df.fillna('')
             print(df)
             conn = mysql.connector.connect(user="root", password="123456", host="localhost", database="htsystem_data",use_pure=False)
@@ -414,3 +420,22 @@ def upload_excel(request):
     return render(request, 'upload_excel.html')
 
 
+
+
+def dashboard(request):
+    sql = "SELECT * FROM daily_data"
+    data = pd.read_sql(sql, mydb)
+    # Truy vấn dữ liệu từ cơ sở dữ liệu
+    total_training = data.groupby(['ID']).count()
+    rit = data.objects.filter(Shift='RIT').count()
+    bali = data.objects.filter(Shift='BALI').count()
+
+    # tonggio_tuan = data.groupby(['ID', 'WEEK', 'YEAR'])['WorkHrs'].sum().reset_index().rename(
+    #     columns={'WorkHrs': 'total_time_week'}).round(1)
+
+    context = {
+        'total_training': total_training,
+        'rit': rit,
+        'bali': bali,
+    }
+    return render(request, 'index.html', context)

@@ -15,4 +15,3 @@ urlpatterns = [
     # path('uploadLC/', views.upload_LC, name='uploadLC'),
     # path('login/', views.login, name='login'),
 ]
-
