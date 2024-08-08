@@ -263,13 +263,13 @@
         $("#submit_search").click(function(e){
             e.preventDefault();
             var idnv=$("#id").val()
-            var startdate=$("#startdate").val()
+            var ngaytruoc=$("#ngaytruoc").val()
+            var ngaysau = $("#ngaysau").val();
             var line=$("#line").val()
             var shift=$("#shift").val()
-            console.log(idnv)
-            console.log(startdate)
-            console.log(shift)
-            var data_load = {'idnv': idnv,'startdate':startdate,'line':line,'shift':shift};
+            console.log(idnv, ngaytruoc, ngaysau, line, shift)
+
+            var data_load = {'idnv': idnv, 'ngaytruoc':ngaytruoc, 'ngaysau':ngaysau, 'line':line, 'shift':shift};
             $.post("/search_danhsach_nv_ajax/", data_load, function(data, status){
                 if(status === 'success'){
                     alert("success")
@@ -292,16 +292,17 @@
                                 row+='<td>'+employee[i].Operation +'</td>'
                                 row+='<td>'+employee[i].Type_training +'</td>'
                                 row+='<td>'+employee[i].Week_start +'</td>'
-                                row+='<td>'+employee[i].Week_end +'</td>'
+                                row+='<td>'+employee[i].TuanraSX +'</td>'
                                 row+='<td>'+employee[i].Technician +'</td>'
                                 row+='<td>'+employee[i].StartDate +'</td>'
+                                row+='<td>'+employee[i].NgayraSX +'</td>'
                                 row+='<td>'
                                 row+='<a href="#" class="btn btn-sm btn-warning">Edit</a>'
                                 row+='</td>'
                         row += '</tr>';
                         $('#table_dsnv tbody').append(row);
-
                     }
+
                     return
                     // table high eff
                     // Clear the table

@@ -4,14 +4,20 @@
 <!-- Tìm kiếm-->
         <form id="form_search" class="form-inline w-100">
             {% csrf_token %}
-            <div class="col-md-3 mb-3">
+            <div class="col-md-2 mb-3">
                 <label for="id">ID:</label>
                 <input type="text" class="form-control w-100" id="id" name="id" placeholder="Nhập ID" value="{{ request.POST.id|default_if_none:'' }}">
             </div>
-            <div class="col-md-3 mb-3">
-                <label for="startdate">Ngày vào:</label>
-                <input type="date" class="form-control w-100" id="startdate" name="startdate" placeholder="Chọn ngày bắt đầu" value="{{ request.POST.startdate|default_if_none:'' }}">
+
+            <div class="col-md-2 mb-3">
+                <label for="ngaytruoc">Ngày bắt đầu:</label>
+                <input type="date" class="form-control w-100" id="ngaytruoc" name="ngaytruoc" placeholder="Chọn ngày bắt đầu" value="{{ request.POST.ngaytruoc|default_if_none:'' }}">
             </div>
+            <div class="col-md-2 mb-3">
+                <label for="ngaysau">Ngày kết thúc:</label>
+                <input type="date" class="form-control w-100" id="ngaysau" name="ngaysau" placeholder="Chọn ngày kết thúc" value="{{ request.POST.ngaysau|default_if_none:'' }}">
+            </div>
+
             <div class="col-md-3 mb-3">
                 <label for="line">Nhập chuyền:</label>
                 <input type="text" class="form-control w-100" id="line" name="line" placeholder="Nhập chuyền" value="{{ request.POST.line|default_if_none:'' }}">
@@ -25,8 +31,11 @@
                 <button id="download" type="button" class="btn btn-outline-primary" style="height:40px; margin-top: 20px; color: white">
                     <a href="/download">Download</a>
                 </button>
-                <button id="upload_excel_data" type="button" class="btn btn-outline-primary" style="height:40px; margin-top: 20px;">
-                    <a href="/upload">Upload excel</a>
+                <button id="upload_excel_data" type="button" class="btn btn-primary" style="height:40px; margin-top: 20px;">
+                    <a href="/upload" style="color:white" >Upload excel</a>
+                </button>
+                <button id="add_employee" type="button" class="btn btn-outline-primary" style="height:40px; margin-top: 20px;">
+                    <a href="/add">Thêm nhân viên</a>
                 </button>
             </div>
         </form>
@@ -77,6 +86,7 @@
                             <th><span>Loại đào tạo <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
                             <th><span>Tuần bắt đầu <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
                             <th><span>Tuần ra sản xuất <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
+                            <th><span>Tuần trong AMT</span></th>
                             <th><span>Kỹ thuật <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i class="feather icon-help-circle f-16"></i></a></span></th>
                             <th><span>Ngày bắt đầu</span></th>
                             <th><span>Ngày ra sản xuất</span></th>
@@ -94,7 +104,8 @@
                                 <td>{{ employee.Operation }}</td>
                                 <td>{{ employee.Type_training }}</td>
                                 <td>{{ employee.Week_start }}</td>
-                                <td>{{ employee.Week_end }}</td>
+                                <td>{{ employee.TuanraSX }}</td>
+                                <td>{{ employee.AMT_week }}</td>
                                 <td>{{ employee.Technician }}</td>
                                 <td>{{ employee.StartDate }}</td>
                                 <td>{{ employee.NgayraSX }}</td>

@@ -25,8 +25,7 @@ def export_to_excel(request):
 
     if os.path.exists(file_path):
         with open(file_path, 'rb') as excel_file:
-            response = HttpResponse(excel_file.read(),
-                                    content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            response = HttpResponse(excel_file.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
             response['Content-Disposition'] = 'attachment; filename="data.xlsx"'
             return response
     else:
@@ -34,15 +33,36 @@ def export_to_excel(request):
 
 def display_training_data(request):
     sql = "SELECT * FROM training_data"
-    mydb = mysql.connector.connect(user="root", password="123456", host="localhost", database="htsystem_data",
-                                   use_pure=False)
+    sql_week = "SELECT * FROM week_training_report"
+    mydb = mysql.connector.connect(user="root", password="123456", host="localhost", database="htsystem_data",use_pure=False)
     training_data = pd.read_sql(sql, mydb)
+    week_data = pd.read_sql(sql_week, mydb)
+
     training_data['StartDaten'] = pd.to_datetime(training_data['StartDate'])
     training_data['Week_start'] = training_data['StartDaten'].dt.isocalendar().week
 
     training_data['NgayraSXn'] = pd.to_datetime(training_data['NgayraSX'])
-    training_data['Week_end'] = training_data['NgayraSXn'].dt.isocalendar().week
+    training_data['TuanraSX'] = training_data['NgayraSXn'].dt.isocalendar().week
 
+    del training_data['StartDaten'], training_data['NgayraSXn']
+    training_data = training_data.fillna(0)
+
+    # Tính số tuần trong AMT
+    # TuanraSX khác 0: đã ra khỏi AMT
+    training_data.loc[training_data['TuanraSX'].astype('int') != 0, 'AMT_week'] = training_data['TuanraSX'].astype('int') - training_data['Week_start'].astype('int')
+    # TuanraSX=0: chưa ra SX,
+    for id in list(set(training_data[training_data['TuanraSX'].astype('int') == 0]['ID'].unique()) & set(week_data['ID'].unique())):
+        # Tính tuần làm việc gần nhất hiện tại của nhân viên
+        week_max = week_data[week_data['ID'] == id]['WEEK'].unique().max()
+        training_data.loc[training_data['ID'] == id, 'AMT_week'] = week_max - training_data['Week_start'].astype('int')
+
+    mycursor = mydb.cursor()
+    for index, row in training_data.iterrows():
+        sql_update = "UPDATE training_data SET Week_start = %s, TuanraSX = %s, AMT_week = %s WHERE ID = %s"
+        val = (row['Week_start'], row['TuanraSX'], row['AMT_week'], row['ID'])
+        mycursor.execute(sql_update, val)
+    mydb.commit()
+    mydb.close()
     training_data.to_excel('data.xlsx', sheet_name='Dữ liệu đào tạo', index=False)
     t = loader.get_template('employee_data.html')
     context = {
@@ -58,6 +78,7 @@ def dailyreport(request):
         sql = "SELECT * FROM daily_training_report"
         daily_training_report = pd.read_sql(sql, mydb).fillna(0)
 
+        daily_training_report['KEYS'] = daily_training_report['ID'].astype(str) + daily_training_report['Date'].astype(str).str.replace('-','')
         # Chuyển đổi cột 'Date' sang datetime
         daily_training_report['Datenew'] = pd.to_datetime(daily_training_report['Date'])
 
@@ -66,6 +87,7 @@ def dailyreport(request):
         daily_training_report['WEEK'] = daily_training_report['Datenew'].dt.isocalendar().week
         daily_training_report['MONTH'] = daily_training_report['Datenew'].dt.month
         daily_training_report['YEAR'] = daily_training_report['Datenew'].dt.year
+        del daily_training_report['Datenew']
 
         # Tính toán realtime_day và date_no_eff
         daily_training_report['realtime_day'] = (daily_training_report['WorkHrs'] - daily_training_report['stop_hours'] - daily_training_report['downtime']).round(1)
@@ -75,8 +97,8 @@ def dailyreport(request):
         mycursor = mydb.cursor()
 
         for index, row in daily_training_report.iterrows():
-            sql_update = "UPDATE daily_training_report SET Weekdays = %s, WEEK = %s, MONTH = %s, YEAR = %s, realtime_day = %s, date_no_eff = %s WHERE ID = %s AND Date = %s"
-            val = (row['Weekdays'], row['WEEK'], row['MONTH'], row['YEAR'], row['realtime_day'], row['date_no_eff'], row['ID'], row['Date'])
+            sql_update = "UPDATE daily_training_report SET `KEYS` = %s, Weekdays = %s, WEEK = %s, MONTH = %s, YEAR = %s, realtime_day = %s, date_no_eff = %s WHERE ID = %s AND Date = %s"
+            val = (row['KEYS'], row['Weekdays'], row['WEEK'], row['MONTH'], row['YEAR'], row['realtime_day'], row['date_no_eff'], row['ID'], row['Date'])
             mycursor.execute(sql_update, val)
 
         mydb.commit()
@@ -165,7 +187,7 @@ def edit_employee_data(request, ID):
             'Operation': request.POST.get('Operation'),
             'Type_training': request.POST.get('Type_training'),
             'Week_start': request.POST.get('Week_start'),
-            'Week_end': request.POST.get('Week_end'),
+            'TuanraSX': request.POST.get('TuanraSX'),
             'Technician': request.POST.get('Technician'),
             'StartDate': request.POST.get('StartDate'),
             'NgayraSX': request.POST.get('NgayraSX'),
@@ -174,13 +196,12 @@ def edit_employee_data(request, ID):
         # Update the data
         update_query = """
             UPDATE training_data
-            SET Name = %s, Line = %s, Shift = %s, Plant = %s, Operation = %s,
-                Type_training = %s, Week_start = %s, Week_end = %s, Technician = %s, StartDate = %s, NgayraSX = %s
+            SET Name = %s, Line = %s, Shift = %s, Plant = %s, Operation = %s, Type_training = %s, Week_start = %s, TuanraSX = %s, Technician = %s, StartDate = %s, NgayraSX = %s
             WHERE ID = %s
         """
         params = (
             data['Name'], data['Line'], data['Shift'], data['Plant'], data['Operation'], data['Type_training'],
-            data['Week_start'], data['Week_end'], data['Technician'], data['StartDate'], data['NgayraSX'], ID
+            data['Week_start'], data['TuanraSX'], data['Technician'], data['StartDate'], data['NgayraSX'], ID
         )
 
         try:
@@ -238,7 +259,6 @@ def edit_dailyreport_data(request, ID, Date):
             data['Name'], data['Line'], data['Shift'], data['Eff'], data['date_no_eff'], data['WorkHrs'], data['stop_hours'],
             data['downtime'], data['chatluong'], data['Weekdays'], data['WEEK'], data['MONTH'], data['YEAR'], ID, Date
         )
-
         try:
             with connection.cursor() as cursor:
                 cursor.execute(update_query, params)
@@ -257,9 +277,10 @@ def search_danhsach_nv_ajax(request):
     if request.method == 'POST':
         id = request.POST.get('idnv')
         line = request.POST.get('line')
-        startdate = request.POST.get('startdate')
+        ngaytruoc = request.POST.get('ngaytruoc')
+        ngaysau = request.POST.get('ngaysau')
         shift = request.POST.get('shift')
-        print(id, line, startdate, shift)
+        print(id, line, ngaytruoc, ngaysau, shift)
 
         sql_search = f"""
         select * from htsystem_data.training_data where 1=1
@@ -270,8 +291,13 @@ def search_danhsach_nv_ajax(request):
             sql_search += f""" and line='{line}'"""
         if shift != '':
             sql_search += f""" and shift='{shift}'"""
-        if startdate != '':
-            sql_search += f""" and startdate='{startdate}'"""
+
+        if ngaytruoc and ngaysau:
+            sql_search += f" AND startdate BETWEEN '{ngaytruoc}' AND '{ngaysau}'"
+        elif ngaytruoc:
+            sql_search += f" AND startdate = '{ngaytruoc}'"
+        elif ngaytruoc:
+            sql_search += f" AND startdate = '{ngaysau}'"
 
         data_h = pd.read_sql(sql_search, mydb)
         data_h.to_excel('data.xlsx', sheet_name='Dữ liệu nhân viên', index=False)
@@ -347,19 +373,19 @@ def add_employee(request):
                         'Operation': request.POST.get('Operation'),
                         'Type_training': request.POST.get('Type_training'),
                         'Week_start': request.POST.get('Week_start'),
-                        'Week_end': request.POST.get('Week_end'),
+                        'TuanraSX': request.POST.get('TuanraSX'),
                         'Technician': request.POST.get('Technician'),
                         'StartDate': request.POST.get('StartDate'),
                     }
 
                     insert_query = '''
                         INSERT INTO training_data (ID, Name, Line, Shift, Plant, Operation,
-                            Type_training, Week_start, Week_end, Technician, StartDate)
+                            Type_training, Week_start, TuanraSX, Technician, StartDate)
                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     '''
                     params = (
                         data['ID'], data['Name'], data['Line'], data['Shift'], data['Plant'], data['Operation'],
-                        data['Type_training'], data['Week_start'], data['Week_end'], data['Technician'],
+                        data['Type_training'], data['Week_start'], data['TuanraSX'], data['Technician'],
                         data['StartDate']
                     )
 
@@ -398,13 +424,13 @@ def upload_excel(request):
                 if count == 0:
                     insert_query = '''
                         INSERT INTO training_data (ID, Name, Line, Shift, Plant, Operation,
-                            Type_training, Week_start, Week_end, Technician, StartDate)
+                            Type_training, Week_start, TuanraSX, Technician, StartDate)
                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     '''
                     params = (
                         row['ID'], row['Name'], row['Line'], row['Shift'], row['Plant'], row['Operation'],
-                        row['Type_training'], row['Week_start'], row['Week_end'], row['Technician'],
-                        row['StartDate']
+                        row['Type_training'], row['Week_start'], row['TuanraSX'], row['Technician'],
+                        row['StartDate'].strftime('%Y-%m-%d')
                     )
                     cursor.execute(insert_query, params)
                     conn.commit()
@@ -423,16 +449,17 @@ def upload_excel(request):
 
 
 def dashboard(request):
-    sql = "SELECT * FROM daily_data"
+    sql = "SELECT * FROM training_data"
+    mydb = mysql.connector.connect(user="root", password="123456", host="localhost", database="htsystem_data",
+                                   use_pure=False)
     data = pd.read_sql(sql, mydb)
-    # Truy vấn dữ liệu từ cơ sở dữ liệu
-    total_training = data.groupby(['ID']).count()
-    rit = data.objects.filter(Shift='RIT').count()
-    bali = data.objects.filter(Shift='BALI').count()
 
-    # tonggio_tuan = data.groupby(['ID', 'WEEK', 'YEAR'])['WorkHrs'].sum().reset_index().rename(
-    #     columns={'WorkHrs': 'total_time_week'}).round(1)
-
+    total_training = len(data)
+    rit = data['Shift'].value_counts().get('RIT', 0)
+    bali = data['Shift'].value_counts().get('BALI', 0)
+    print("Tổng số nhân viên đào tạo: ", total_training)
+    print("RIT: ", rit)
+    print("BALI: ", bali)
     context = {
         'total_training': total_training,
         'rit': rit,
