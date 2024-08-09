@@ -33,7 +33,7 @@ def export_to_excel(request):
 
 def display_training_data(request):
     sql = "SELECT * FROM training_data"
-    sql_week = "SELECT * FROM week_training_report"
+    sql_week = "SELECT * FROM week_training_report1"
     mydb = mysql.connector.connect(user="root", password="123456", host="localhost", database="htsystem_data",use_pure=False)
     training_data = pd.read_sql(sql, mydb)
     week_data = pd.read_sql(sql_week, mydb)
@@ -61,6 +61,8 @@ def display_training_data(request):
         sql_update = "UPDATE training_data SET Week_start = %s, TuanraSX = %s, AMT_week = %s WHERE ID = %s"
         val = (row['Week_start'], row['TuanraSX'], row['AMT_week'], row['ID'])
         mycursor.execute(sql_update, val)
+
+    training_data = training_data.sort_values(by=['ID', 'StartDate'])
     mydb.commit()
     mydb.close()
     training_data.to_excel('data.xlsx', sheet_name='Dữ liệu đào tạo', index=False)
@@ -72,13 +74,13 @@ def display_training_data(request):
     return HttpResponse(t.render(context, request))
 
 
-import datetime
+
 def dailyreport(request):
         mydb = mysql.connector.connect(user="root", password="123456", host="localhost", database="htsystem_data", use_pure=False)
         sql = "SELECT * FROM daily_training_report"
         daily_training_report = pd.read_sql(sql, mydb).fillna(0)
 
-        daily_training_report['KEYS'] = daily_training_report['ID'].astype(str) + daily_training_report['Date'].astype(str).str.replace('-','')
+        daily_training_report['KEYE'] = daily_training_report['ID'].astype(str) + daily_training_report['Date'].astype(str).str.replace('-','')
         # Chuyển đổi cột 'Date' sang datetime
         daily_training_report['Datenew'] = pd.to_datetime(daily_training_report['Date'])
 
@@ -97,9 +99,12 @@ def dailyreport(request):
         mycursor = mydb.cursor()
 
         for index, row in daily_training_report.iterrows():
-            sql_update = "UPDATE daily_training_report SET `KEYS` = %s, Weekdays = %s, WEEK = %s, MONTH = %s, YEAR = %s, realtime_day = %s, date_no_eff = %s WHERE ID = %s AND Date = %s"
-            val = (row['KEYS'], row['Weekdays'], row['WEEK'], row['MONTH'], row['YEAR'], row['realtime_day'], row['date_no_eff'], row['ID'], row['Date'])
+            sql_update = "UPDATE daily_training_report SET KEYE = %s, Weekdays = %s, WEEK = %s, YEAR = %s, realtime_day = %s, date_no_eff = %s WHERE ID = %s AND Date = %s"
+            val = (row['KEYE'], row['Weekdays'], row['WEEK'], row['YEAR'], row['realtime_day'], row['date_no_eff'], row['ID'], row['Date'])
             mycursor.execute(sql_update, val)
+
+        #Chọn sắp xếp thời gian giảm dần để hiển thị những ngày gần nhất lên trên
+        daily_training_report = daily_training_report.sort_values(by=['Date', 'WEEK', 'YEAR'], ascending=[False,False,False])
 
         mydb.commit()
         mydb.close()
@@ -111,20 +116,19 @@ def dailyreport(request):
 
 def week_report(request):
     mydb = mysql.connector.connect(user="root", password="123456", host="localhost", database="htsystem_data",use_pure=False)
-    sql = "SELECT t1.*, t2.Operation FROM daily_training_report AS t1 left join training_data AS t2 ON t1.ID = t2.ID"
+    sql = "SELECT t1.*, t2.Operation, t2.TuanraSX FROM daily_training_report AS t1 left join training_data AS t2 ON t1.ID = t2.ID"
     data = pd.read_sql(sql, mydb)
 
     duongcong_sql = "SELECT * FROM data_training_curse"
     duongcong = pd.read_sql(duongcong_sql, mydb)
 
-    week = data.groupby(['ID', 'Name', 'WEEK', 'MONTH', 'YEAR', 'Operation'])['chatluong'].sum().reset_index()
+    week = data.groupby(['ID', 'Name', 'WEEK', 'YEAR', 'Operation'])['chatluong'].sum().reset_index()
     week['ChitieuCL'] = 3
     week['DanhgiaCL'] = 'Đạt'
     week.loc[week['chatluong'] > week['ChitieuCL'], 'DanhgiaCL'] = 'Không đạt'
 
     # tính tổng thời gian làm việc trong tuần
-    tonggio_tuan = data.groupby(['ID', 'WEEK', 'YEAR'])['WorkHrs'].sum().reset_index().rename(
-        columns={'WorkHrs': 'total_time_week'}).round(1)
+    tonggio_tuan = data.groupby(['ID', 'WEEK', 'YEAR'])['WorkHrs'].sum().reset_index().rename(columns={'WorkHrs': 'total_time_week'}).round(1)
     # tổng thời gian đến hiện tại
     tonggio_tuan['total_time'] = tonggio_tuan.groupby(['ID', 'YEAR'])['total_time_week'].cumsum().reset_index()[
         'total_time_week'].round(1)
@@ -142,16 +146,68 @@ def week_report(request):
     week = pd.merge(week, duongcong[['OPERATION', 'COUNT_DAYS', 'EFF_CURVE_BY_DATE']], how='left',
                     left_on=['Operation', 'Ngaydaotao'], right_on=['OPERATION', 'COUNT_DAYS'])
 
-    del week['OPERATION'], week['COUNT_DAYS']
-    week['DanhgiaHS'] = 'Đạt'
-    week.loc[week['Hieusuat_tuan'] < week['EFF_CURVE_BY_DATE'], 'DanhgiaHS'] = 'Không đạt'
-    week = week.rename(columns={'EFF_CURVE_BY_DATE': 'ChitieuHS'})
+    week['ChitieuHS'] = week['EFF_CURVE_BY_DATE']-0.5
+    week.loc[week['ChitieuHS'] > 80, 'ChitieuHS'] = 80
 
-    week.to_sql('week_training_report', con=engine_hbi, if_exists='replace', index=False)
+    week.loc[week['Hieusuat_tuan'] < week['ChitieuHS'], 'DanhgiaHS'] = 'Không đạt'
+    week.loc[week['Hieusuat_tuan'] >= week['ChitieuHS'], 'DanhgiaHS'] = 'Đạt'
+
+    del week['OPERATION'], week['COUNT_DAYS'], week['EFF_CURVE_BY_DATE']
+    # week['DanhgiaHS'] = 'Đạt'
+    # week.loc[week['Hieusuat_tuan'] < week['EFF_CURVE_BY_DATE']-0.5, 'DanhgiaHS'] = 'Không đạt'
+    # week.loc[week['Hieusuat_tuan'] >= week['EFF_CURVE_BY_DATE']-0.5, 'DanhgiaHS'] = 'Đạt'
+    # week = week.rename(columns={'EFF_CURVE_BY_DATE': 'ChitieuHS'})
+
+    week['ttRaSX'] = ((week['WEEK'].astype(float) - data['TuanraSX'].astype(float) + 1)).round(0)
+
+    week = week.sort_values(by=['WEEK', 'YEAR'],ascending=[False, False])
+
+    week.to_sql('week_training_report1', con=engine_hbi, if_exists='replace', index=False)
     week.to_excel('data.xlsx', sheet_name='Dữ liệu hàng ngày', index=False)
-    context = {'week_training_report': week}
+    context = {'week_training_report1': week}
     print(week)
     return render(request, 'week_report.html', context)
+
+
+def result_report(request):
+    sql = "SELECT * FROM training_data"
+    training_data = pd.read_sql(sql, mydb)
+    sqld = "SELECT * FROM daily_training_report"
+    daily_training_report = pd.read_sql(sqld, mydb)
+    sqlw = "SELECT * FROM week_training_report1"
+    week_training_report = pd.read_sql(sqlw, mydb)
+
+    data = training_data[['ID', 'Name', 'Line', 'Shift', 'Operation', 'Type_training', 'NgayraSX', 'Technician']]
+
+    # lấy hiệu suất max
+    Eff_max = daily_training_report[daily_training_report['date_no_eff'] == 0].groupby(['ID', 'Name'])['Eff'].max().reset_index().rename(columns={'Eff': 'Eff_max'})
+    # Sắp xếp theo ID và Date, nhóm theo ID để lấy ra ngày làm việc cuối cùng của nhân viên
+    dulieucuoi_day = daily_training_report.sort_values(by=['ID', 'Date']).groupby('ID').last().reset_index()
+    TuanP2K_max = dulieucuoi_day[['ID', 'Name', 'WEEK']].rename(columns={'WEEK': 'TuanP2K_max'})
+    dulieucuoi = pd.merge(TuanP2K_max, Eff_max, how='left', left_on=['ID', 'Name'], right_on=['ID', 'Name'])
+
+    # Lấy hiệu suất cuối cùng trong bảng week
+    dulieucuoi_week = week_training_report.sort_values(by=['ID', 'WEEK', 'YEAR']).groupby('ID').last().reset_index()
+    dulieucuoi_week = dulieucuoi_week[['ID', 'Name', 'Hieusuat_tuan', 'ChitieuHS']].rename(columns={'Hieusuat_tuan': 'Hieusuatgannhat'})
+    dulieucuoi = pd.merge(dulieucuoi, dulieucuoi_week, how='left', left_on=['ID', 'Name'], right_on=['ID', 'Name'])
+
+    data = pd.merge(data, dulieucuoi, how='left', left_on=['ID', 'Name'], right_on=['ID', 'Name']).fillna(0)
+
+    # Cho ngày tốt nghiệp tạm thời vì CHƯA SET ĐIỀU KIỆN
+    # đúng là status_day vì nếu nghỉ thì là ngày nghỉ việc
+    data['NgayTN'] = '2024-08-09'
+    data['NgayTN'] = pd.to_datetime(data['NgayTN'], format='%Y-%m-%d')
+    # Tính thứ tự tuần tốt nghiệp = TuanP2K_max - Tuần tốt nghiệp
+    data['TTtuanTN'] = data['TuanP2K_max'] - data['NgayTN'].dt.isocalendar().week + 1
+    # SET TẠM THỜI
+    data['Status'] = 'Tốt nghiệp (tạm)'
+    data['Note'] = 'Ghi chú'
+
+    data.to_sql('result_report', con=engine_hbi, if_exists='replace', index=False)
+    data.to_excel('data.xlsx', sheet_name='Kết quả đào tạo', index=False)
+    context = {'result_report': data}
+    print(data)
+    return render(request, 'result_report.html', context)
 
 
 def edit_employee_data(request, ID):

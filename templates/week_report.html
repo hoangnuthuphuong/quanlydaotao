@@ -25,8 +25,8 @@
                 <input type="text" class="form-control w-100" id="WEEK" name="WEEK" placeholder="Nhập tuần" value="{{ request.POST.WEEK|default_if_none:'' }}">
             </div>
             <div class="col-md-2 mb-3">
-                <label for="MONTH">Tháng:</label>
-                <input type="text" class="form-control w-100" id="MONTH" name="MONTH" placeholder="Nhập tháng" value="{{ request.POST.MONTH|default_if_none:'' }}">
+                <label for="ttRaSX">Thứ tự ra SX:</label>
+                <input type="text" class="form-control w-100" id="ttRaSX" name="ttRaSX" placeholder="Thứ tự tuần ra SX" value="{{ request.POST.ttRaSX|default_if_none:'' }}">
             </div>
             <div class="col-md-1 mb-3">
                 <label for="YEAR">Năm:</label>
@@ -41,7 +41,7 @@
         </form>
 
 <!-- Bảng dữ liệu nhân viên start -->
-<div class="tab-pane fade show active" style="padding-top: 15px">
+<div class="tab-pane fade show active" style="padding-top: 15px; width: 100%">
     <div class="card table-card">
         <div class="card-header-right">
             <div class="card-header">
@@ -70,7 +70,7 @@
                         <a class="nav-link active" id="weekreport-tab" data-bs-toggle="pill" href="/weekreport" role="tab" aria-controls="pills-weekreport" aria-selected="true"><i class="feather icon-mail m-r-5"></i> Thống kê đào tạo (tuần)</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="pills-news-tab" data-bs-toggle="pill" href="#pills-news" role="tab" aria-controls="pills-news" aria-selected="false"><i class="feather icon-monitor m-r-5"></i> Kết quả đào tạo</a>
+                        <a class="nav-link" id="result-tab" data-bs-toggle="pill" href="/ketquadaotao" role="tab" aria-controls="pills-result" aria-selected="false"><i class="feather icon-monitor m-r-5"></i> Kết quả đào tạo</a>
                     </li>
                 </ul>
                 <div class="table-responsive" style="width:100%">
@@ -80,7 +80,7 @@
                             <th><span>Mã nhân viên</span></th>
                             <th><span>Họ tên</span></th>
                             <th><span>Tuần P2K</span></th>
-                            <th><span>Tháng</span></th>
+                            <th><span>Thứ tự tuần ra SX</span></th>
                             <th><span>Năm</span></th>
                             <th><span>Công đoạn</span></th>
                             <th><span>Chất lượng</span></th>
@@ -91,17 +91,17 @@
                             <th><span>Ngày đào tạo</span></th>
                             <th><span>Tuần LC</span></th>
                             <th><span>Hiệu suất (tuần)</span></th>
-                            <th><span>Chỉ tiêu HS <a class="help" data-toggle="popover" title="(=tổng giờ làm - giờ ngưng việc - downtime)" data-content="Giờ làm thực tế trong ngày của nhân viên (=tổng giờ làm - giờ ngưng việc - downtime)"><i class="feather icon-help-circle f-16"></i></a></span></th>
+                            <th><span>Chỉ tiêu HS <a class="help" data-toggle="popover" title="eff_target-0.5" data-content="còn bất ổn"><i class="feather icon-help-circle f-16"></i></a></span></th>
                             <th><span>Đánh giá HS</span></th>
                             </tr>
                         </thead>
                         <tbody id="body_table_weekreport">
-                            {% for employee in week_training_report.itertuples %}
+                            {% for employee in week_training_report1.itertuples %}
                             <tr>
                                 <td>{{ employee.ID }}</td>
                                 <td>{{ employee.Name }}</td>
                                 <td>{{ employee.WEEK }}</td>
-                                <td>{{ employee.MONTH }}</td>
+                                <td>{{ employee.ttRaSX }}</td>
                                 <td>{{ employee.YEAR }}</td>
                                 <td>{{ employee.Operation }}</td>
                                 <td>{{ employee.chatluong }}</td>

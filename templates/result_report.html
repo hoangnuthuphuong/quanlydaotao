@@ -1,8 +1,9 @@
 {% extends 'index.html' %}
 
-{% block dailyreport_data %}
+{% block result_report %}
 <!-- Tìm kiếm-->
-        <form id="form_search_daily" class="form-inline w-100">
+<!--SỬA LẠI FORRM-->
+        <form id="form_search_baocaotuan" class="form-inline w-100">
             {% csrf_token %}
             <div class="col-md-2 mb-3">
                 <label for="id">ID:</label>
@@ -25,8 +26,8 @@
                 <input type="text" class="form-control w-100" id="WEEK" name="WEEK" placeholder="Nhập tuần" value="{{ request.POST.WEEK|default_if_none:'' }}">
             </div>
             <div class="col-md-2 mb-3">
-                <label for="MONTH">Tháng:</label>
-                <input type="text" class="form-control w-100" id="MONTH" name="MONTH" placeholder="Nhập tháng" value="{{ request.POST.MONTH|default_if_none:'' }}">
+                <label for="ttRaSX">Thứ tự ra SX:</label>
+                <input type="text" class="form-control w-100" id="ttRaSX" name="ttRaSX" placeholder="Thứ tự tuần ra SX" value="{{ request.POST.ttRaSX|default_if_none:'' }}">
             </div>
             <div class="col-md-1 mb-3">
                 <label for="YEAR">Năm:</label>
@@ -40,12 +41,12 @@
             </div>
         </form>
 
-<!-- Bảng dữ liệu nhân viên start -->
+<!-- Bảng dữ KẾT QUẢ ĐÀO TẠO start -->
 <div class="tab-pane fade show active" style="padding-top: 15px; width: 100%">
     <div class="card table-card">
         <div class="card-header-right">
             <div class="card-header">
-                <h5>Quản lý nhân viên</h5>
+                <h5>Kết quả đào tạo</h5>
                 <div class="card-header-right">
                     <div class="btn-group card-option">
                         <button type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -64,66 +65,61 @@
                         <a class="nav-link" id="employee_data-tab" data-bs-toggle="pill" href="/" role="tab" aria-controls="pills-employee_data" aria-selected="false"><i class="feather icon-film m-r-5"></i> Dữ liệu nhân viên</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" id="dailyreport-tab" data-bs-toggle="pill" href="/dailyreport" role="tab" aria-controls="pills-dailyreport" aria-selected="true"><i class="feather icon-file-text m-r-5"></i> Dữ liệu đào tạo</a>
+                        <a class="nav-link " id="dailyreport-tab" data-bs-toggle="pill" href="/dailyreport" role="tab" aria-controls="pills-dailyreport" aria-selected="false"><i class="feather icon-file-text m-r-5"></i> Dữ liệu đào tạo</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" id="weekreport-tab" data-bs-toggle="pill" href="/weekreport" role="tab" aria-controls="pills-weekreport" aria-selected="false"><i class="feather icon-mail m-r-5"></i> Thống kê đào tạo (tuần)</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="result-tab" data-bs-toggle="pill" href="/ketquadaotao" role="tab" aria-controls="pills-result" aria-selected="false"><i class="feather icon-monitor m-r-5"></i> Kết quả đào tạo</a>
+                        <a class="nav-link active" id="result-tab" data-bs-toggle="pill" href="/ketquadaotao" role="tab" aria-controls="pills-result" aria-selected="true"><i class="feather icon-monitor m-r-5"></i> Kết quả đào tạo</a>
                     </li>
                 </ul>
                 <div class="table-responsive" style="width:100%">
-                    <table id="table_dailyreport" class="table table-hover" >
+                    <table id="table_result" class="table table-hover" >
                         <thead>
                             <tr>
                             <th><span>Mã nhân viên</span></th>
                             <th><span>Họ tên</span></th>
-                            <th><span>Line</span></th>
-                            <th><span>Shift</span></th>
-                            <th><span>Hiệu suất</span></th>
-                            <th><span>Ngày không HS</span></th>
-                            <th><span>Giờ làm thực tế <a class="help" data-toggle="popover" title="(=tổng giờ làm - giờ ngưng việc - downtime)" data-content="Giờ làm thực tế trong ngày của nhân viên (=tổng giờ làm - giờ ngưng việc - downtime)"><i class="feather icon-help-circle f-16"></i></a></span></th>
-                            <th><span>Giờ làm</span></th>
-                            <th><span>Giờ ngưng việc</span></th>
-                            <th><span>Downtime</span></th>
-                            <th><span>Chất lượng</span></th>
-                            <th><span>Ngày</span></th>
-                            <th><span>Thứ</span></th>
                             <th><span>Tuần P2K</span></th>
-                            <th><span>Tháng</span></th>
+                            <th><span>Thứ tự tuần ra SX</span></th>
                             <th><span>Năm</span></th>
-                            <th><span>Chỉnh sửa</span></th>
+                            <th><span>Công đoạn</span></th>
+                            <th><span>Chất lượng</span></th>
+                            <th><span>Chỉ tiêu CL</span></th>
+                            <th><span>Đánh giá CL</span></th>
+                            <th><span>Giờ làm (tuần)</span></th>
+                            <th><span>Tổng thời gian làm việc</span></th>
+                            <th><span>Ngày đào tạo</span></th>
+                            <th><span>Tuần LC</span></th>
+                            <th><span>Hiệu suất (tuần)</span></th>
+                            <th><span>Chỉ tiêu HS <a class="help" data-toggle="popover" title="eff_target-0.5" data-content="còn bất ổn"><i class="feather icon-help-circle f-16"></i></a></span></th>
+                            <th><span>Đánh giá HS</span></th>
                             </tr>
                         </thead>
-                        <tbody id="body_table_dailyreport">
-                            {% for employee in daily_training_report.itertuples %}
+                        <tbody id="body_table_weekreport">
+                            {% for employee in result_report.itertuples %}
                             <tr>
                                 <td>{{ employee.ID }}</td>
                                 <td>{{ employee.Name }}</td>
                                 <td>{{ employee.Line }}</td>
                                 <td>{{ employee.Shift }}</td>
-                                <td>{{ employee.Eff }}</td>
-                                <td>{{ employee.date_no_eff }}</td>
-                                <td>{{ employee.realtime_day }}</td>
-                                <td>{{ employee.WorkHrs }}</td>
-                                <td>{{ employee.stop_hours }}</td>
-                                <td>{{ employee.downtime }}</td>
-                                <td>{{ employee.chatluong }}</td>
-                                <td>{{ employee.Date }}</td>
-                                <td>{{ employee.Weekdays }}</td>
-                                <td>{{ employee.WEEK }}</td>
-                                <td>{{ employee.MONTH }}</td>
-                                <td>{{ employee.YEAR }}</td>
-                                <td>
-                                    <a href="{% url 'edit_dailyreport_data' employee.ID employee.Date %}" class="btn btn-sm btn-warning">Edit</a>
-                                </td>
+                                <td>{{ employee.Operation }}</td>
+                                <td>{{ employee.Type_training }}</td>
+                                <td>{{ employee.NgayraSX }}</td>
+                                <td>{{ employee.Technician }}</td>
+                                <td>{{ employee.TuanP2K_max }}</td>
+                                <td>{{ employee.Eff_max }}</td>
+                                <td>{{ employee.Hieusuatgannhat }}</td>
+                                <td>{{ employee.ChitieuHS }}</td>
+                                <td>{{ employee.NgayTN }}</td>
+                                <td>{{ employee.TTtuanTN }}</td>
+                                <td>{{ employee.Status }}</td>
+                                <td>{{ employee.Note }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
-
             </div>
         </div>
     </div>
