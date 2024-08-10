@@ -33,11 +33,14 @@ def export_to_excel(request):
 
 def display_training_data(request):
     sql = "SELECT * FROM training_data"
-    sql_week = "SELECT * FROM week_training_report1"
+    #aaa
+    # sql_week = "SELECT * FROM week_training_report1"
     mydb = mysql.connector.connect(user="root", password="123456", host="localhost", database="htsystem_data",use_pure=False)
     training_data = pd.read_sql(sql, mydb)
-    week_data = pd.read_sql(sql_week, mydb)
+    #aaa
+    # week_data = pd.read_sql(sql_week, mydb)
 
+    training_data['KEYE'] = (training_data['ID'].astype(str) + training_data['StartDate'].astype(str).str.replace('-', ''))
     training_data['StartDaten'] = pd.to_datetime(training_data['StartDate'])
     training_data['Week_start'] = training_data['StartDaten'].dt.isocalendar().week
 
@@ -51,15 +54,16 @@ def display_training_data(request):
     # TuanraSX khác 0: đã ra khỏi AMT
     training_data.loc[training_data['TuanraSX'].astype('int') != 0, 'AMT_week'] = training_data['TuanraSX'].astype('int') - training_data['Week_start'].astype('int')
     # TuanraSX=0: chưa ra SX,
-    for id in list(set(training_data[training_data['TuanraSX'].astype('int') == 0]['ID'].unique()) & set(week_data['ID'].unique())):
-        # Tính tuần làm việc gần nhất hiện tại của nhân viên
-        week_max = week_data[week_data['ID'] == id]['WEEK'].unique().max()
-        training_data.loc[training_data['ID'] == id, 'AMT_week'] = week_max - training_data['Week_start'].astype('int')
+    #aaa
+    # for id in list(set(training_data[training_data['TuanraSX'].astype('int') == 0]['ID'].unique()) & set(week_data['ID'].unique())):
+    #     # Tính tuần làm việc gần nhất hiện tại của nhân viên
+    #     week_max = week_data[week_data['ID'] == id]['WEEK'].unique().max()
+    #     training_data.loc[training_data['ID'] == id, 'AMT_week'] = week_max - training_data['Week_start'].astype('int')
 
     mycursor = mydb.cursor()
     for index, row in training_data.iterrows():
-        sql_update = "UPDATE training_data SET Week_start = %s, TuanraSX = %s, AMT_week = %s WHERE ID = %s"
-        val = (row['Week_start'], row['TuanraSX'], row['AMT_week'], row['ID'])
+        sql_update = "UPDATE training_data SET KEYE = %s, Week_start = %s, TuanraSX = %s, AMT_week = %s WHERE ID = %s"
+        val = (row['KEYE'], row['Week_start'], row['TuanraSX'], row['AMT_week'], row['ID'])
         mycursor.execute(sql_update, val)
 
     training_data = training_data.sort_values(by=['ID', 'StartDate'])
@@ -123,6 +127,8 @@ def week_report(request):
     duongcong = pd.read_sql(duongcong_sql, mydb)
 
     week = data.groupby(['ID', 'Name', 'WEEK', 'YEAR', 'Operation'])['chatluong'].sum().reset_index()
+    week['KEYE'] = week['ID'].astype(str) + week['Name'].astype(str).str.replace(' ', '') + week['WEEK'].astype(str) + week['YEAR'].astype(str)
+
     week['ChitieuCL'] = 3
     week['DanhgiaCL'] = 'Đạt'
     week.loc[week['chatluong'] > week['ChitieuCL'], 'DanhgiaCL'] = 'Không đạt'
@@ -160,10 +166,23 @@ def week_report(request):
 
     week['ttRaSX'] = ((week['WEEK'].astype(float) - data['TuanraSX'].astype(float) + 1)).round(0)
 
-    week = week.sort_values(by=['WEEK', 'YEAR'],ascending=[False, False])
+    #
+    # mycursor = mydb.cursor()
+    #
+    # for index, row in week.iterrows():
+    #     sql_update = """INSERT week_training_report1 SET KEYE = %s, ID = %s, Name = %s, WEEK = %s, YEAR = %s, Operation = %s,
+    #      chatluong = %s, ChitieuCL = %s,  DanhgiaCL = %s, total_time_week = %s, total_time=%s"""
+    #     val = (
+    #     row['KEYE'], row['Weekdays'], row['WEEK'], row['YEAR'], row['realtime_day'], row['date_no_eff'], row['ID'],
+    #     row['Date'])
+    #     mycursor.execute(sql_update, val)
 
-    week.to_sql('week_training_report1', con=engine_hbi, if_exists='replace', index=False)
-    week.to_excel('data.xlsx', sheet_name='Dữ liệu hàng ngày', index=False)
+    week = week.sort_values(by=['WEEK', 'YEAR'],ascending=[False, False])
+    # mydb.commit()
+    # mydb.close()
+
+    # week.to_sql('week_training_report1', con=engine_hbi, if_exists='replace', index=False)
+    week.to_excel('data.xlsx', sheet_name='Báo cáo đào tạo tuần', index=False)
     context = {'week_training_report1': week}
     print(week)
     return render(request, 'week_report.html', context)
