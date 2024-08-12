@@ -94,6 +94,7 @@
                             <th><span>Thứ tự tuần tốt nghiệp</span></th>
                             <th><span>Trạng thái <a class="help" data-toggle="popover" title="tốt nghiệp/nghỉ việc" data-content="còn bất ổn"><i class="feather icon-help-circle f-16"></i></a></span></th>
                             <th><span>Ghi chú</span></th>
+                            <th><span>Số tuần trong AMT</span></th>
                             </tr>
                         </thead>
                         <tbody id="body_table_weekreport">
@@ -115,6 +116,8 @@
                                 <td>{{ employee.TTtuanTN }}</td>
                                 <td>{{ employee.Status }}</td>
                                 <td>{{ employee.Note }}</td>
+                                <td>{{ employee.AMT_week }}</td>
+
                             </tr>
                             {% endfor %}
                         </tbody>

@@ -9,7 +9,7 @@ from django.shortcuts import render, redirect
 from django.template import loader
 from django.views.decorators.csrf import csrf_exempt
 from .forms import SearchForm
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 
 # hostname = 'localhost'
 engine_hbi = create_engine('mysql+mysqlconnector://root:123456@localhost:3306/htsystem_data', echo=False)
@@ -50,20 +50,11 @@ def display_training_data(request):
     del training_data['StartDaten'], training_data['NgayraSXn']
     training_data = training_data.fillna(0)
 
-    # Tính số tuần trong AMT
-    # TuanraSX khác 0: đã ra khỏi AMT
-    training_data.loc[training_data['TuanraSX'].astype('int') != 0, 'AMT_week'] = training_data['TuanraSX'].astype('int') - training_data['Week_start'].astype('int')
-    # TuanraSX=0: chưa ra SX,
-    #aaa
-    # for id in list(set(training_data[training_data['TuanraSX'].astype('int') == 0]['ID'].unique()) & set(week_data['ID'].unique())):
-    #     # Tính tuần làm việc gần nhất hiện tại của nhân viên
-    #     week_max = week_data[week_data['ID'] == id]['WEEK'].unique().max()
-    #     training_data.loc[training_data['ID'] == id, 'AMT_week'] = week_max - training_data['Week_start'].astype('int')
 
     mycursor = mydb.cursor()
     for index, row in training_data.iterrows():
-        sql_update = "UPDATE training_data SET KEYE = %s, Week_start = %s, TuanraSX = %s, AMT_week = %s WHERE ID = %s"
-        val = (row['KEYE'], row['Week_start'], row['TuanraSX'], row['AMT_week'], row['ID'])
+        sql_update = "UPDATE training_data SET KEYE = %s, Week_start = %s, TuanraSX = %s WHERE ID = %s"
+        val = (row['KEYE'], row['Week_start'], row['TuanraSX'], row['ID'])
         mycursor.execute(sql_update, val)
 
     training_data = training_data.sort_values(by=['ID', 'StartDate'])
@@ -118,74 +109,89 @@ def dailyreport(request):
         return render(request, 'dailyreport.html', context)
 
 
+
 def week_report(request):
-    mydb = mysql.connector.connect(user="root", password="123456", host="localhost", database="htsystem_data",use_pure=False)
-    sql = "SELECT t1.*, t2.Operation, t2.TuanraSX FROM daily_training_report AS t1 left join training_data AS t2 ON t1.ID = t2.ID"
-    data = pd.read_sql(sql, mydb)
+    # Kết nối đến cơ sở dữ liệu MySQL
+    mydb = mysql.connector.connect(user="root", password="123456", host="localhost", database="htsystem_data", use_pure=False)
+
+    # Truy vấn dữ liệu từ cơ sở dữ liệu MySQL
+    sql = "SELECT * FROM daily_training_report"
+    daily_training_report = pd.read_sql(sql, mydb)
+
+    sqlt = "SELECT ID, Operation, TuanraSX FROM training_data"
+    training_data = pd.read_sql(sqlt, mydb)
+
+    data = pd.merge(daily_training_report, training_data, how='left', left_on=['ID'], right_on=['ID'])
 
     duongcong_sql = "SELECT * FROM data_training_curse"
     duongcong = pd.read_sql(duongcong_sql, mydb)
 
+    # Xử lý dữ liệu
     week = data.groupby(['ID', 'Name', 'WEEK', 'YEAR', 'Operation'])['chatluong'].sum().reset_index()
-    week['KEYE'] = week['ID'].astype(str) + week['Name'].astype(str).str.replace(' ', '') + week['WEEK'].astype(str) + week['YEAR'].astype(str)
-
     week['ChitieuCL'] = 3
     week['DanhgiaCL'] = 'Đạt'
     week.loc[week['chatluong'] > week['ChitieuCL'], 'DanhgiaCL'] = 'Không đạt'
 
-    # tính tổng thời gian làm việc trong tuần
-    tonggio_tuan = data.groupby(['ID', 'WEEK', 'YEAR'])['WorkHrs'].sum().reset_index().rename(columns={'WorkHrs': 'total_time_week'}).round(1)
-    # tổng thời gian đến hiện tại
+    tonggio_tuan = data.groupby(['ID', 'WEEK', 'YEAR'])['WorkHrs'].sum().reset_index().rename(
+        columns={'WorkHrs': 'total_time_week'}).round(1)
     tonggio_tuan['total_time'] = tonggio_tuan.groupby(['ID', 'YEAR'])['total_time_week'].cumsum().reset_index()[
         'total_time_week'].round(1)
-    # # Tính ngày đào tạo
-    # tonggio_tuan['Ngay'] = (tonggio_tuan['WorkHrsNow']/7.37)
     tonggio_tuan['Ngaydaotao'] = (tonggio_tuan['total_time'] // 7.37)
-    # điều kiện tính ngày đào tạo
-    tonggio_tuan.loc[
-        ((tonggio_tuan['total_time'] / 7.37) - (tonggio_tuan['total_time'] // 7.37)) > (5 / 7.37), 'Ngaydaotao'] = (tonggio_tuan['total_time'] // 7.37) + 1
+    tonggio_tuan.loc[((tonggio_tuan['total_time'] / 7.37) - (tonggio_tuan['total_time'] // 7.37)) > (5 / 7.37), 'Ngaydaotao'] = (tonggio_tuan['total_time'] // 7.37) + 1
     week = pd.merge(week, tonggio_tuan, how='left', left_on=['ID', 'WEEK', 'YEAR'], right_on=['ID', 'WEEK', 'YEAR'])
     week['TuanLC'] = (week['Ngaydaotao'] / 6).round(2)
-    week = pd.merge(week,
-                    data[data['date_no_eff'] == 0].groupby(['ID', 'WEEK', 'YEAR'])['Eff'].mean().round(1).reset_index(),
-                    how='left', left_on=['ID', 'WEEK', 'YEAR'], right_on=['ID', 'WEEK', 'YEAR']).rename(columns={'Eff': 'Hieusuat_tuan'})
-    week = pd.merge(week, duongcong[['OPERATION', 'COUNT_DAYS', 'EFF_CURVE_BY_DATE']], how='left',
-                    left_on=['Operation', 'Ngaydaotao'], right_on=['OPERATION', 'COUNT_DAYS'])
+    week = pd.merge(week, data[data['date_no_eff'] == 0].groupby(['ID', 'WEEK', 'YEAR'])['Eff'].mean().round(1).reset_index(), how='left', left_on=['ID', 'WEEK', 'YEAR'], right_on=['ID', 'WEEK', 'YEAR']).rename(columns={'Eff': 'Hieusuat_tuan'})
+    week = pd.merge(week, duongcong[['OPERATION', 'COUNT_DAYS', 'EFF_CURVE_BY_DATE']], how='left', left_on=['Operation', 'Ngaydaotao'], right_on=['OPERATION', 'COUNT_DAYS'])
 
-    week['ChitieuHS'] = week['EFF_CURVE_BY_DATE']-0.5
+    week['ChitieuHS'] = week['EFF_CURVE_BY_DATE'] - 0.5
     week.loc[week['ChitieuHS'] > 80, 'ChitieuHS'] = 80
 
     week.loc[week['Hieusuat_tuan'] < week['ChitieuHS'], 'DanhgiaHS'] = 'Không đạt'
     week.loc[week['Hieusuat_tuan'] >= week['ChitieuHS'], 'DanhgiaHS'] = 'Đạt'
 
     del week['OPERATION'], week['COUNT_DAYS'], week['EFF_CURVE_BY_DATE']
-    # week['DanhgiaHS'] = 'Đạt'
-    # week.loc[week['Hieusuat_tuan'] < week['EFF_CURVE_BY_DATE']-0.5, 'DanhgiaHS'] = 'Không đạt'
-    # week.loc[week['Hieusuat_tuan'] >= week['EFF_CURVE_BY_DATE']-0.5, 'DanhgiaHS'] = 'Đạt'
-    # week = week.rename(columns={'EFF_CURVE_BY_DATE': 'ChitieuHS'})
-
     week['ttRaSX'] = ((week['WEEK'].astype(float) - data['TuanraSX'].astype(float) + 1)).round(0)
 
-    #
-    # mycursor = mydb.cursor()
-    #
-    # for index, row in week.iterrows():
-    #     sql_update = """INSERT week_training_report1 SET KEYE = %s, ID = %s, Name = %s, WEEK = %s, YEAR = %s, Operation = %s,
-    #      chatluong = %s, ChitieuCL = %s,  DanhgiaCL = %s, total_time_week = %s, total_time=%s"""
-    #     val = (
-    #     row['KEYE'], row['Weekdays'], row['WEEK'], row['YEAR'], row['realtime_day'], row['date_no_eff'], row['ID'],
-    #     row['Date'])
-    #     mycursor.execute(sql_update, val)
+    # Kết nối đến cơ sở dữ liệu MySQL và thực hiện chèn dữ liệu
+    mycursor = mydb.cursor()
 
-    week = week.sort_values(by=['WEEK', 'YEAR'],ascending=[False, False])
-    # mydb.commit()
-    # mydb.close()
+    for index, row in week.iterrows():
+        sql_update = """
+        INSERT INTO week_training_report1 (ID, Name, WEEK, YEAR, Operation, chatluong, ChitieuCL, DanhgiaCL, total_time_week, total_time, Ngaydaotao, TuanLC, Hieusuat_tuan, ChitieuHS, DanhgiaHS, ttRaSX)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE
+            Name = VALUES(Name),
+            WEEK = VALUES(WEEK),
+            YEAR = VALUES(YEAR),
+            Operation = VALUES(Operation),
+            chatluong = VALUES(chatluong),
+            ChitieuCL = VALUES(ChitieuCL),
+            DanhgiaCL = VALUES(DanhgiaCL),
+            total_time_week = VALUES(total_time_week),
+            total_time = VALUES(total_time),
+            Ngaydaotao = VALUES(Ngaydaotao),
+            TuanLC = VALUES(TuanLC),
+            Hieusuat_tuan = VALUES(Hieusuat_tuan),
+            ChitieuHS = VALUES(ChitieuHS),
+            DanhgiaHS = VALUES(DanhgiaHS),
+            ttRaSX = VALUES(ttRaSX);
+        """
+        val = (row['ID'], row['Name'], row['WEEK'], row['YEAR'], row['Operation'], row['chatluong'],
+               row['ChitieuCL'], row['DanhgiaCL'], row['total_time_week'], row['total_time'], row['Ngaydaotao'],
+               row['TuanLC'], row['Hieusuat_tuan'], row['ChitieuHS'], row['DanhgiaHS'], row['ttRaSX'])
+        mycursor.execute(sql_update, val)
 
-    # week.to_sql('week_training_report1', con=engine_hbi, if_exists='replace', index=False)
+    # Cam kết và đóng kết nối
+    mydb.commit()
+    mydb.close()
+
+    # Xuất dữ liệu ra file Excel
     week.to_excel('data.xlsx', sheet_name='Báo cáo đào tạo tuần', index=False)
     context = {'week_training_report1': week}
     print(week)
     return render(request, 'week_report.html', context)
+
+
 
 
 def result_report(request):
@@ -216,11 +222,24 @@ def result_report(request):
     # đúng là status_day vì nếu nghỉ thì là ngày nghỉ việc
     data['NgayTN'] = '2024-08-09'
     data['NgayTN'] = pd.to_datetime(data['NgayTN'], format='%Y-%m-%d')
+
+
     # Tính thứ tự tuần tốt nghiệp = TuanP2K_max - Tuần tốt nghiệp
     data['TTtuanTN'] = data['TuanP2K_max'] - data['NgayTN'].dt.isocalendar().week + 1
     # SET TẠM THỜI
     data['Status'] = 'Tốt nghiệp (tạm)'
     data['Note'] = 'Ghi chú'
+
+    # Tính số tuần trong AMT
+    # TuanraSX khác 0: đã ra khỏi AMT
+    # data['AMT_week'] = 'Tuân ra SX'
+    data.loc[training_data['TuanraSX'].astype('int') != 0, 'AMT_week'] = training_data['TuanraSX'].astype('int') - training_data['Week_start'].astype('int')
+    # TuanraSX=0: chưa ra SX,
+    #aaa
+    for id in list(set(data[training_data['TuanraSX'].astype('int') == 0]['ID'].unique()) & set(week_training_report['ID'].unique())):
+        # Tính tuần làm việc gần nhất hiện tại của nhân viên
+        week_max = week_training_report[week_training_report['ID'] == id]['WEEK'].unique().max()
+        data.loc[training_data['ID'] == id, 'AMT_week'] = week_max - training_data['Week_start'].astype('int')
 
     data.to_sql('result_report', con=engine_hbi, if_exists='replace', index=False)
     data.to_excel('data.xlsx', sheet_name='Kết quả đào tạo', index=False)

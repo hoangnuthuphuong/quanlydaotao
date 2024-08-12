@@ -31,7 +31,11 @@
 			{% csrf_token %}
 			<input type="file" name="excel_file" style="color: #005B9A;padding:10px">
 			<button type="submit" class="btn btn-primary">Tải lên</button>
+			<button id="back" type="button" class="btn btn-outline-primary">
+				<a href="/">Trở về</a>
+			</button>
 		</form>
 	</div>
 </div>
+
 {% endblock %}
