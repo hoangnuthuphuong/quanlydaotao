@@ -1,89 +1,104 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CHỈNH SỬA DỮ LIỆU NHÂN VIÊN</title>
-    <link rel="stylesheet" href="https://appsrv1-147a1.kxcdn.com/gradient/css/style.min.css">
-</head>
-<body>
-    <h1>CHỈNH SỬA DỮ LIỆU NHÂN VIÊN</h1>
+<!--<!DOCTYPE html>-->
+<!--<html lang="en">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--    <title>CHỈNH SỬA DỮ LIỆU NHÂN VIÊN</title>-->
+<!--    <link rel="stylesheet" href="https://appsrv1-147a1.kxcdn.com/gradient/css/style.min.css">-->
+<!--</head>-->
+<!--<body>-->
 
-    <!-- Display success or error messages -->
-    {% if messages %}
-        <ul>
-        {% for message in messages %}
-            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-        {% endfor %}
-        </ul>
-    {% endif %}
 
-    <form method="post">
-        {% csrf_token %}
-        <div>
-            <label for="Name">Name:</label>
-            <input type="text" id="Name" name="Name" value="{{ record.Name }}">
-        </div>
-        <div>
-            <label for="Line">Line:</label>
-            <input type="text" id="Line" name="Line" value="{{ record.Line }}">
-        </div>
-        <div>
-            <label for="Shift">Shift:</label>
-            <select id="Shift" name="Shift">
-                <option value="{{ record.Shift }}">{{ record.Shift }}</option>
-                <option value="BALI">BALI</option>
-                <option value="RIT">RIT</option>
-            </select>
-        </div>
-        <div>
-            <label for="Plant">Plant:</label>
-            <input type="text" id="Plant" name="Plant" value="{{ record.Plant }}">
-        </div>
-        <div>
-            <label for="Operation">Operation:</label>
-            <select id="Operation" name="Operation">
-                <option value="{{ record.Operation }}">{{ record.Operation }}</option>
-                    {% for option in congdoan %}
-                        <option value="{{ option }}">{{ option }}</option>
-                    {% endfor %}
-            </select>
-        </div>
-        <div>
-            <label for="Type_training">Type of Training:</label>
-            <select id="Type_training" name="Type_training">
-                <option value="{{ record.Type_training }}">{{ record.Type_training }}</option>
-                <option value="Đào tạo mới">Đào tạo mới</option>
-                <option value="Đào tạo chéo">Đào tạo chéo</option>
-            </select>
-        </div>
-        <div>
-            <label for="Week_start">Week Start:</label>
-            <input type="date" id="Week_start" name="Week_start" value="{{ record.Week_start }}">
-        </div>
-        <div>
-            <label for="TuanraSX">TuanraSX:</label>
-            <input type="date" id="TuanraSX" name="TuanraSX" value="{{ record.TuanraSX }}">
-        </div>
-        <div>
-            <label for="Technician">Technician:</label>
-            <input type="text" id="Technician" name="Technician" value="{{ record.Technician }}">
-        </div>
-        <div>
-            <label for="StartDate">StartDate:</label>
-            <input type="date" id="StartDate" name="StartDate" value="{{ record.StartDate }}">
-        </div>
-        <div>
-            <label for="NgayraSX">NgayraSX:</label>
-            <input type="date" id="NgayraSX" name="NgayraSX" value="{{ record.NgayraSX }}">
-        </div>
-        <div>
-            <button type="submit">Update</button>
-            <button type="submit" name="delete" value="true" onclick="return confirm('Bạn có chắc chắn muốn xóa nhân viên này không?');">Delete</button>
-        </div>
-    </form>
+{% extends 'index.html' %}
+{% block edit_employee_data %}
+
+<hr>
+<div class="col-md-3 col-md-12 col-md-3" style="padding: 30px" >
+	<div class="card text-left" style="align-items: left; padding: 30px">
+		<div class="card-header" style="align-items: left;">
+			<h2 style="color: #005B55; ">
+			  CHỈNH SỬA DỮ LIỆU ĐÀO TẠO HÀNG NGÀY
+			</h2>
+		</div>
+
+
+        <!-- Display success or error messages -->
+        {% if messages %}
+            <ul>
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+
+
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-row">
+                <div class="form-group col-md-3">
+                    <label for="Name">Họ tên nhân viên: </label>
+                    <input type="text" class="form-control" id="Name" name="Name" value="{{ record.Name }}">
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="Line">Nhóm chuyền: </label>
+                    <input type="text" class="form-control" id="Line" name="Line" value="{{ record.Line }}">
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="Shift">Ca làm việc: </label>
+                    <select id="Shift" class="form-control" name="Shift">
+                        <option value="{{ record.Shift }}">{{ record.Shift }}</option>
+                        <option value="BALI">BALI</option>
+                        <option value="RIT">RIT</option>
+                    </select>
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="Plant">Vị trí làm việc:</label>
+                    <input type="text" class="form-control" id="Plant" name="Plant" value="{{ record.Plant }}">
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="Operation">Công đoạn:</label>
+                    <select id="Operation" class="form-control" name="Operation">
+                        <option value="{{ record.Operation }}">{{ record.Operation }}</option>
+                            {% for option in congdoan %}
+                                <option value="{{ option }}">{{ option }}</option>
+                            {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="Type_training">Loại đào tạo:</label>
+                    <select id="Type_training" class="form-control" name="Type_training">
+                        <option value="{{ record.Type_training }}">{{ record.Type_training }}</option>
+                        <option value="Đào tạo mới">Đào tạo mới</option>
+                        <option value="Đào tạo chéo">Đào tạo chéo</option>
+                    </select>
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="Week_start">Tuần vào:</label>
+                    <input type="date" class="form-control" id="Week_start" name="Week_start" value="{{ record.Week_start }}">
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="TuanraSX">Tuần ra sản xuất:</label>
+                    <input type="date" class="form-control" id="TuanraSX" name="TuanraSX" value="{{ record.TuanraSX }}">
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="Technician">Kỹ thuật:</label>
+                    <input type="text" class="form-control" id="Technician" name="Technician" value="{{ record.Technician }}">
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="StartDate">Ngày bắt đầu:</label>
+                    <input type="date" class="form-control" id="StartDate" name="StartDate" value="{{ record.StartDate }}">
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="NgayraSX">Ngày ra sản xuất:</label>
+                    <input type="date" class="form-control" id="NgayraSX" name="NgayraSX" value="{{ record.NgayraSX }}">
+                </div>
+            </div>
+        </form>
     <div>
-        <a href="{% url 'index' %}" class="btn btn-sm btn-secondary">Back</a>
+        <button type="submit" class="btn btn-secondary">Cập nhật</button>
+        <button type="submit" class="btn btn-secondary" name="delete" value="true" onclick="return confirm('Bạn có chắc chắn muốn xóa nhân viên này không?');">Delete</button>
+        <a href="{% url 'index' %}" class="btn btn-secondary">Back</a>
     </div>
-</body>
-</html>
+
+{% endblock %}
