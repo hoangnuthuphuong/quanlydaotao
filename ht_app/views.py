@@ -221,11 +221,11 @@ def result_report(request):
     # Cho ngày tốt nghiệp tạm thời vì CHƯA SET ĐIỀU KIỆN
     # đúng là status_day vì nếu nghỉ thì là ngày nghỉ việc
     data['NgayTN'] = '2024-08-09'
-    data['NgayTN'] = pd.to_datetime(data['NgayTN'], format='%Y-%m-%d')
+    # data['NgayTN'] = pd.to_datetime(data['NgayTN'], format='%Y-%m-%d')
 
 
     # Tính thứ tự tuần tốt nghiệp = TuanP2K_max - Tuần tốt nghiệp
-    data['TTtuanTN'] = data['TuanP2K_max'] - data['NgayTN'].dt.isocalendar().week + 1
+    data['TTtuanTN'] = data['TuanP2K_max'] - pd.to_datetime(data['NgayTN'], format='%Y-%m-%d').dt.isocalendar().week + 1
     # SET TẠM THỜI
     data['Status'] = 'Tốt nghiệp (tạm)'
     data['Note'] = 'Ghi chú'
@@ -271,8 +271,6 @@ def edit_employee_data(request, ID):
             except Exception as e:
                 messages.error(request, f"Error deleting record: {e}")
                 return redirect('edit_employee_data', ID=ID)
-
-
         data = {
             'Name': request.POST.get('Name'),
             'Line': request.POST.get('Line'),
@@ -307,7 +305,7 @@ def edit_employee_data(request, ID):
             messages.error(request, f"Lỗi: {e}")
         return redirect('edit_employee_data', ID=ID)
 
-    congdoan = ['BIND PANEL', 'SEW BAND', 'ATTACH BUTTON', 'BIND LEG']
+    congdoan = ['PAD PRINT', 'MAKE BAND', 'BARTACK', 'ATTACH BUTTON', 'HEM BOTTOM', 'BIND PANEL', 'SEW BAND', 'ATTACH BUTTON', 'BIND LEG']
 
     context = {'record': record, 'congdoan': congdoan}
     return render(request, 'edit_employee.html', context)
@@ -470,17 +468,18 @@ def add_employee(request):
                         'TuanraSX': request.POST.get('TuanraSX'),
                         'Technician': request.POST.get('Technician'),
                         'StartDate': request.POST.get('StartDate'),
+                        'NgayraSX': request.POST.get('NgayraSX'),
                     }
 
                     insert_query = '''
                         INSERT INTO training_data (ID, Name, Line, Shift, Plant, Operation,
-                            Type_training, Week_start, TuanraSX, Technician, StartDate)
+                            Type_training, Week_start, TuanraSX, Technician, StartDate, NgayraSX)
                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     '''
                     params = (
                         data['ID'], data['Name'], data['Line'], data['Shift'], data['Plant'], data['Operation'],
                         data['Type_training'], data['Week_start'], data['TuanraSX'], data['Technician'],
-                        data['StartDate']
+                        data['StartDate'], data['NgayraSX']
                     )
 
                     cursor.execute(insert_query, params)

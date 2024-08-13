@@ -16,8 +16,8 @@
 <div class="col-md-3 col-md-12 col-md-3" style="padding: 30px" >
 	<div class="card text-left" style="align-items: left; padding: 30px">
 		<div class="card-header" style="align-items: left;">
-			<h2 style="color: #005B55; ">
-			  CHỈNH SỬA DỮ LIỆU ĐÀO TẠO HÀNG NGÀY
+			<h2 style="text-align: center; font-size: 2.5rem; color: #005B55;">
+			  CHỈNH SỬA DỮ LIỆU ĐÀO TẠO NHÂN VIÊN
 			</h2>
 		</div>
 
@@ -35,29 +35,48 @@
 
         <form method="post">
             {% csrf_token %}
-            <div class="form-row">
-                <div class="form-group col-md-3">
+            <div class="form-row" STYLE="display: flex; justify-content: center; ">
+                <div class="form-group col-md-2" STYLE="display: flex; justify-content: right; padding:5px; margin-right: 2rem">
                     <label for="Name">Họ tên nhân viên: </label>
-                    <input type="text" class="form-control" id="Name" name="Name" value="{{ record.Name }}">
                 </div>
-                <div class="form-group col-md-3">
-                    <label for="Line">Nhóm chuyền: </label>
-                    <input type="text" class="form-control" id="Line" name="Line" value="{{ record.Line }}">
+                <div class="form-group col-md-4" STYLE="display: block; margin-bottom: .5rem;">
+                    <input type="text" class="form-control" STYLE="display: block; margin-bottom: .5rem;" id="Name" name="Name" value="{{ record.Name }}">
                 </div>
-                <div class="form-group col-md-3">
+            </div>
+            <div class="form-row" STYLE="display: flex; justify-content: center; ">
+                <div class="form-group col-md-2" STYLE="display: flex; justify-content: right; padding:5px; margin-right: 2rem">
+                    <label for="Name">Nhóm chuyền: </label>
+                </div>
+                <div class="form-group col-md-4" STYLE="display: block; margin-bottom: .5rem;">
+                    <input type="text" class="form-control" STYLE="display: block; margin-bottom: .5rem; width: 100%;" id="Line" name="Line" value="{{ record.Line }}">
+                </div>
+            </div>
+            <div class="form-row" STYLE="display: flex; justify-content: center; ">
+                <div class="form-group col-md-2" STYLE="display: flex; justify-content: right; padding:5px; margin-right: 2rem">
                     <label for="Shift">Ca làm việc: </label>
-                    <select id="Shift" class="form-control" name="Shift">
+                </div>
+                <div class="form-group col-md-4" STYLE="display: block; margin-bottom: .5rem;">
+                    <select id="Shift" class="form-control" STYLE="display: block; margin-bottom: .5rem; width: 100%;"  name="Shift">
                         <option value="{{ record.Shift }}">{{ record.Shift }}</option>
                         <option value="BALI">BALI</option>
                         <option value="RIT">RIT</option>
                     </select>
                 </div>
-                <div class="form-group col-md-3">
+            </div>
+
+            <div class="form-row" STYLE="display: flex; justify-content: center; ">
+                <div class="form-group col-md-2" STYLE="display: flex; justify-content: right; padding:5px; margin-right: 2rem">
                     <label for="Plant">Vị trí làm việc:</label>
+                </div>
+                <div class="form-group col-md-4" STYLE="display: block; margin-bottom: .5rem;">
                     <input type="text" class="form-control" id="Plant" name="Plant" value="{{ record.Plant }}">
                 </div>
-                <div class="form-group col-md-3">
+            </div>
+            <div class="form-row" STYLE="display: flex; justify-content: center; ">
+                <div class="form-group col-md-2" STYLE="display: flex; justify-content: right; padding:5px; margin-right: 2rem">
                     <label for="Operation">Công đoạn:</label>
+                </div>
+                <div class="form-group col-md-4" STYLE="display: block; margin-bottom: .5rem;">
                     <select id="Operation" class="form-control" name="Operation">
                         <option value="{{ record.Operation }}">{{ record.Operation }}</option>
                             {% for option in congdoan %}
@@ -65,40 +84,68 @@
                             {% endfor %}
                     </select>
                 </div>
-                <div class="form-group col-md-3">
+            </div>
+            <div class="form-row" STYLE="display: flex; justify-content: center; ">
+                <div class="form-group col-md-2" STYLE="display: flex; justify-content: right; padding:5px; margin-right: 2rem">
                     <label for="Type_training">Loại đào tạo:</label>
+                </div>
+                <div class="form-group col-md-4" STYLE="display: block; margin-bottom: .5rem;">
                     <select id="Type_training" class="form-control" name="Type_training">
                         <option value="{{ record.Type_training }}">{{ record.Type_training }}</option>
                         <option value="Đào tạo mới">Đào tạo mới</option>
                         <option value="Đào tạo chéo">Đào tạo chéo</option>
                     </select>
                 </div>
-                <div class="form-group col-md-3">
+            </div>
+            <div class="form-row" STYLE="display: flex; justify-content: center; ">
+                <div class="form-group col-md-2" STYLE="display: flex; justify-content: right; padding:5px; margin-right: 2rem">
                     <label for="Week_start">Tuần vào:</label>
+                </div>
+                <div class="form-group col-md-4" STYLE="display: block; margin-bottom: .5rem;">
                     <input type="date" class="form-control" id="Week_start" name="Week_start" value="{{ record.Week_start }}">
                 </div>
-                <div class="form-group col-md-3">
+            </div>
+
+            <div class="form-row" STYLE="display: flex; justify-content: center; ">
+                <div class="form-group col-md-2" STYLE="display: flex; justify-content: right; padding:5px; margin-right: 2rem">
                     <label for="TuanraSX">Tuần ra sản xuất:</label>
+                </div>
+                <div class="form-group col-md-4" STYLE="display: block; margin-bottom: .5rem;">
                     <input type="date" class="form-control" id="TuanraSX" name="TuanraSX" value="{{ record.TuanraSX }}">
                 </div>
-                <div class="form-group col-md-4">
+            </div>
+            <div class="form-row" STYLE="display: flex; justify-content: center; ">
+                <div class="form-group col-md-2" STYLE="display: flex; justify-content: right; padding:5px; margin-right: 2rem">
                     <label for="Technician">Kỹ thuật:</label>
+                </div>
+                <div class="form-group col-md-4" STYLE="display: block; margin-bottom: .5rem;">
                     <input type="text" class="form-control" id="Technician" name="Technician" value="{{ record.Technician }}">
                 </div>
-                <div class="form-group col-md-4">
+            </div>
+            <div class="form-row" STYLE="display: flex; justify-content: center; ">
+                <div class="form-group col-md-2" STYLE="display: flex; justify-content: right; padding:5px; margin-right: 2rem">
                     <label for="StartDate">Ngày bắt đầu:</label>
+                </div>
+                <div class="form-group col-md-4" STYLE="display: block; margin-bottom: .5rem;">
                     <input type="date" class="form-control" id="StartDate" name="StartDate" value="{{ record.StartDate }}">
                 </div>
-                <div class="form-group col-md-4">
+            </div>
+            <div class="form-row" STYLE="display: flex; justify-content: center; ">
+                <div class="form-group col-md-2" STYLE="display: flex; justify-content: right; padding:5px; margin-right: 2rem">
                     <label for="NgayraSX">Ngày ra sản xuất:</label>
+                </div>
+                <div class="form-group col-md-4" STYLE="display: block; margin-bottom: .5rem;">
                     <input type="date" class="form-control" id="NgayraSX" name="NgayraSX" value="{{ record.NgayraSX }}">
                 </div>
             </div>
+            <div class="form-group col-md-10">
+                <div STYLE="display: flex; justify-content: right; margin-right: 5.2rem; ">
+                    <button type="submit" class="btn btn-primary" style="margin: .5rem">Cập nhật</button>
+                    <button type="button" class="btn btn-secondary" style="margin: .5rem" name="delete" value="true" onclick="return confirm('Bạn có chắc chắn muốn xóa nhân viên này không?');">Delete</button>
+                    <a href="{% url 'index' %}" class="btn btn-secondary" style="margin: .5rem">Back</a>
+                </div>
+            </div>
         </form>
-    <div>
-        <button type="submit" class="btn btn-secondary">Cập nhật</button>
-        <button type="submit" class="btn btn-secondary" name="delete" value="true" onclick="return confirm('Bạn có chắc chắn muốn xóa nhân viên này không?');">Delete</button>
-        <a href="{% url 'index' %}" class="btn btn-secondary">Back</a>
-    </div>
-
 {% endblock %}
+
+
