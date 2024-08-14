@@ -95,6 +95,7 @@
                             <th><span>Trạng thái <a class="help" data-toggle="popover" title="tốt nghiệp/nghỉ việc" data-content="còn bất ổn"><i class="feather icon-help-circle f-16"></i></a></span></th>
                             <th><span>Ghi chú</span></th>
                             <th><span>Số tuần trong AMT</span></th>
+                            <th><span>Chỉnh sửa</span></th>
                             </tr>
                         </thead>
                         <tbody id="body_table_weekreport">
@@ -117,6 +118,9 @@
                                 <td>{{ employee.Status }}</td>
                                 <td>{{ employee.Note }}</td>
                                 <td>{{ employee.AMT_week }}</td>
+                                <td>
+                                    <a href="{% url 'edit_result_data' employee.ID %}" class="btn btn-sm btn-warning">Edit</a>
+                                </td>
 
                             </tr>
                             {% endfor %}

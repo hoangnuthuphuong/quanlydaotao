@@ -9,28 +9,29 @@
                 <input type="text" class="form-control w-100" id="id" name="id" placeholder="Nhập ID" value="{{ request.POST.id|default_if_none:'' }}">
             </div>
             <div class="col-md-2 mb-3">
-                <label for="Line">Line:</label>
-                <input type="text" class="form-control w-100" id="Line" name="Line" placeholder="Chọn chuyền" value="{{ request.POST.Line|default_if_none:'' }}">
-            </div>
-            <div class="col-md-3 mb-3">
-                <label for="Date">Chọn ngày:</label>
-                <input type="date" class="form-control w-100" id="Date" name="Date" placeholder="Chọn ngày" value="{{ request.POST.Date|default_if_none:'' }}">
+                <label for="Line">Họ tên nhân viên:</label>
+                <input type="text" class="form-control w-100" id="Line" name="Line" placeholder="Nhập tuần P2K" value="{{ request.POST.Line|default_if_none:'' }}">
             </div>
             <div class="col-md-1 mb-3">
-                <label for="Weekdays">Thứ:</label>
-                <input type="text" class="form-control w-100" id="Weekdays" name="Weekdays" placeholder="Nhập thứ" value="{{ request.POST.Weekdays|default_if_none:'' }}">
+                <label for="Line">Tuần P2K:</label>
+                <input type="text" class="form-control w-100" id="Line" name="Line" placeholder="Nhập tuần P2K" value="{{ request.POST.Line|default_if_none:'' }}">
             </div>
-            <div class="col-md-1 mb-3">
-                <label for="WEEK">Tuần P2K:</label>
-                <input type="text" class="form-control w-100" id="WEEK" name="WEEK" placeholder="Nhập tuần" value="{{ request.POST.WEEK|default_if_none:'' }}">
-            </div>
+
             <div class="col-md-2 mb-3">
-                <label for="ttRaSX">Thứ tự ra SX:</label>
-                <input type="text" class="form-control w-100" id="ttRaSX" name="ttRaSX" placeholder="Thứ tự tuần ra SX" value="{{ request.POST.ttRaSX|default_if_none:'' }}">
+                <label for="ttRaSX">Thứ tự tuần ra sản xuất:</label>
+                <input type="text" class="form-control w-100" id="a" name="ttRaSX" placeholder="Thứ tự tuần ra SX" value="{{ request.POST.ttRaSX|default_if_none:'' }}">
             </div>
             <div class="col-md-1 mb-3">
                 <label for="YEAR">Năm:</label>
-                <input type="text" class="form-control w-100" id="YEAR" name="YEAR" placeholder="Nhập năm" value="{{ request.POST.YEAR|default_if_none:'' }}">
+                <input type="text" class="form-control w-100" id="" name="YEAR" placeholder="Nhập năm" value="{{ request.POST.YEAR|default_if_none:'' }}">
+            </div>
+            <div class="col-md-2 mb-3">
+                <label for="ttRaSX">Đánh giá chất lượng:</label>
+                <input type="text" class="form-control w-100" id="ttRaSX" name="ttRaSX" placeholder="Đánh giá chất lượng" value="{{ request.POST.ttRaSX|default_if_none:'' }}">
+            </div>
+            <div class="col-md-2 mb-3">
+                <label for="YEAR">Đánh giá hiệu suất:</label>
+                <input type="text" class="form-control w-100" id="YEAR" name="YEAR" placeholder="Đánh giá hiệu suất" value="{{ request.POST.YEAR|default_if_none:'' }}">
             </div>
             <div class="col-md-12 text-left">
                 <button id="submit_search" type="submit" class="btn btn-primary" style="height:40px; margin-top: 20px;">Search</button>
@@ -96,7 +97,7 @@
                             </tr>
                         </thead>
                         <tbody id="body_table_weekreport">
-                            {% for employee in week_training_report1.itertuples %}
+                            {% for employee in week_training_reportabc.itertuples %}
                             <tr>
                                 <td>{{ employee.ID }}</td>
                                 <td>{{ employee.Name }}</td>

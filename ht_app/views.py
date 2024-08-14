@@ -146,18 +146,19 @@ def week_report(request):
     week['ChitieuHS'] = week['EFF_CURVE_BY_DATE'] - 0.5
     week.loc[week['ChitieuHS'] > 80, 'ChitieuHS'] = 80
 
-    week.loc[week['Hieusuat_tuan'] < week['ChitieuHS'], 'DanhgiaHS'] = 'Không đạt'
+    week.loc[week['Hieusuat_tuan'] < week['ChitieuHS'], 'DanhgiaHS'] = 'Chưa đạt'
     week.loc[week['Hieusuat_tuan'] >= week['ChitieuHS'], 'DanhgiaHS'] = 'Đạt'
 
     del week['OPERATION'], week['COUNT_DAYS'], week['EFF_CURVE_BY_DATE']
     week['ttRaSX'] = ((week['WEEK'].astype(float) - data['TuanraSX'].astype(float) + 1)).round(0)
+    week = week.fillna(0).sort_values(by=['WEEK', 'YEAR'], ascending=[False,False])
 
     # Kết nối đến cơ sở dữ liệu MySQL và thực hiện chèn dữ liệu
     mycursor = mydb.cursor()
 
     for index, row in week.iterrows():
         sql_update = """
-        INSERT INTO week_training_report1 (ID, Name, WEEK, YEAR, Operation, chatluong, ChitieuCL, DanhgiaCL, total_time_week, total_time, Ngaydaotao, TuanLC, Hieusuat_tuan, ChitieuHS, DanhgiaHS, ttRaSX)
+        INSERT INTO week_training_reportabc (ID, Name, WEEK, YEAR, Operation, chatluong, ChitieuCL, DanhgiaCL, total_time_week, total_time, Ngaydaotao, TuanLC, Hieusuat_tuan, ChitieuHS, DanhgiaHS, ttRaSX)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         ON DUPLICATE KEY UPDATE
             Name = VALUES(Name),
@@ -187,7 +188,7 @@ def week_report(request):
 
     # Xuất dữ liệu ra file Excel
     week.to_excel('data.xlsx', sheet_name='Báo cáo đào tạo tuần', index=False)
-    context = {'week_training_report1': week}
+    context = {'week_training_reportabc': week}
     print(week)
     return render(request, 'week_report.html', context)
 
@@ -199,7 +200,7 @@ def result_report(request):
     training_data = pd.read_sql(sql, mydb)
     sqld = "SELECT * FROM daily_training_report"
     daily_training_report = pd.read_sql(sqld, mydb)
-    sqlw = "SELECT * FROM week_training_report1"
+    sqlw = "SELECT * FROM week_training_reportabc"
     week_training_report = pd.read_sql(sqlw, mydb)
 
     data = training_data[['ID', 'Name', 'Line', 'Shift', 'Operation', 'Type_training', 'NgayraSX', 'Technician']]
@@ -362,6 +363,54 @@ def edit_dailyreport_data(request, ID, Date):
 
     context = {'record': record}
     return render(request, 'edit_dailyreport_data.html', context)
+
+
+def edit_result_data(request, ID):
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM result_report WHERE ID = %s", [ID])
+        row = cursor.fetchone()
+        columns = [col[0] for col in cursor.description]
+        record = dict(zip(columns, row)) if row else None
+        connection.commit()
+
+    if not record:
+        messages.error(request, 'Record not found.')
+        return redirect('index')
+
+    if request.method == 'POST':
+        data = {
+            'Name': request.POST.get('Name'),
+            'Type_training': request.POST.get('Type_training'),
+            'NgayraSX': request.POST.get('NgayraSX'),
+            'Technician': request.POST.get('Technician'),
+            'Hieusuatgiannhat': request.POST.get('Hieusuatgiannhat'),
+            'ChitieuHS': request.POST.get('ChitieuHS'),
+            'NgayTN': request.POST.get('NgayTN'),
+            'Status': request.POST.get('Status'),
+            'Note': request.POST.get('Note'),
+            'AMT_week': request.POST.get('AMT_week'),
+        }
+
+        update_query = """
+            UPDATE result_report
+            SET Name = %s, Type_training = %s, NgayraSX = %s, Technician = %s, Hieusuatgiannhat = %s,
+                ChitieuHS = %s, NgayTN = %s, Status = %s, Note = %s, AMT_week = %s
+            WHERE ID = %s 
+        """
+        params = (
+            data['Name'], data['Type_training'], data['NgayraSX'], data['Technician'], data['Hieusuatgiannhat'], data['ChitieuHS'],
+            data['NgayTN'], data['Status'], data['Note'], data['AMT_week'], ID)
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(update_query, params)
+                connection.commit()
+            messages.success(request, 'Chỉnh sửa dữ liệu thành công!')
+        except Exception as e:
+            messages.error(request, f"Lỗi: {e}")
+            return redirect('edit_result_data', ID=ID)
+
+    context = {'record': record}
+    return render(request, 'edit_result_data.html', context)
 
 
 @csrf_exempt
@@ -538,6 +587,49 @@ def upload_excel(request):
             return HttpResponse('Có lỗi xảy ra khi tải lên file. Vui lòng kiểm tra lại.')
     return render(request, 'upload_excel.html')
 
+
+
+def upload_daily_data(request):
+    if request.method == 'POST' and request.FILES.get('excel_file'):
+        excel_file = request.FILES['excel_file']
+
+        if not excel_file.name.endswith('.xlsx'):
+            return HttpResponse('File tải lên không phải là file Excel.')
+        try:
+            df = pd.read_excel(excel_file, engine='openpyxl')
+            # df['StartDate'] = df['StartDate'].fillna('00/00/0000')
+            df = df.fillna('')
+            print(df)
+            conn = mysql.connector.connect(user="root", password="123456", host="localhost", database="htsystem_data",use_pure=False)
+            cursor = conn.cursor()
+            for index, row in df.iterrows():
+                KEYE = row['KEYE']
+                cursor.execute("SELECT COUNT(*) FROM daily_training_report WHERE KEYE = %s", [KEYE])
+                count = cursor.fetchone()[0]
+
+                if count == 0:
+                    insert_query = '''
+                        INSERT INTO daily_training_report (KEYE, ID, Name, Line, Shift, Date, Weekdays, WEEK, MONTH, 
+                        YEAR, Eff, date_no_eff, WorkHrs, stop_hours, downtime, realtime_day, chatluong)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    '''
+                    params = (
+                        row['KEYE'], row['ID'], row['Name'], row['Line'], row['Shift'], row['Date'].strftime('%Y-%m-%d'), row['Weekdays'],
+                        row['WEEK'], row['MONTH'], row['YEAR'], row['Eff'], row['date_no_eff'], row['WorkHrs'], row['stop_hours'],
+                        row['downtime'], row['realtime_day'], row['chatluong']
+                    )
+                    cursor.execute(insert_query, params)
+                    conn.commit()
+
+            cursor.close()
+            conn.close()
+            messages.success(request, 'Dữ liệu đã được tải lên thành công!')
+            # return HttpResponse('Dữ liệu đã được tải lên thành công!')
+        except Exception as e:
+            conn.rollback()
+            logger.error(f'Lỗi khi tải lên file Excel: {str(e)}')
+            return HttpResponse('Có lỗi xảy ra khi tải lên file. Vui lòng kiểm tra lại.')
+    return render(request, 'upload_daily_data.html')
 
 
 
