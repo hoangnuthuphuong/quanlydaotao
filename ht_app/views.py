@@ -127,7 +127,9 @@ def week_report(request):
     duongcong = pd.read_sql(duongcong_sql, mydb)
 
     # Xử lý dữ liệu
+
     week = data.groupby(['ID', 'Name', 'WEEK', 'YEAR', 'Operation'])['chatluong'].sum().reset_index()
+    week['KEYE'] = week['ID'].astype(str) + week['WEEK'].astype(str) + week['YEAR'].astype(str)
     week['ChitieuCL'] = 3
     week['DanhgiaCL'] = 'Đạt'
     week.loc[week['chatluong'] > week['ChitieuCL'], 'DanhgiaCL'] = 'Không đạt'
@@ -158,9 +160,10 @@ def week_report(request):
 
     for index, row in week.iterrows():
         sql_update = """
-        INSERT INTO week_training_reportabc (ID, Name, WEEK, YEAR, Operation, chatluong, ChitieuCL, DanhgiaCL, total_time_week, total_time, Ngaydaotao, TuanLC, Hieusuat_tuan, ChitieuHS, DanhgiaHS, ttRaSX)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO week_training_reportabc (KEYE, ID, Name, WEEK, YEAR, Operation, chatluong, ChitieuCL, DanhgiaCL, total_time_week, total_time, Ngaydaotao, TuanLC, Hieusuat_tuan, ChitieuHS, DanhgiaHS, ttRaSX)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         ON DUPLICATE KEY UPDATE
+            KEYE = VALUES(KEYE),
             Name = VALUES(Name),
             WEEK = VALUES(WEEK),
             YEAR = VALUES(YEAR),
@@ -177,7 +180,7 @@ def week_report(request):
             DanhgiaHS = VALUES(DanhgiaHS),
             ttRaSX = VALUES(ttRaSX);
         """
-        val = (row['ID'], row['Name'], row['WEEK'], row['YEAR'], row['Operation'], row['chatluong'],
+        val = (row['KEYE'], row['ID'], row['Name'], row['WEEK'], row['YEAR'], row['Operation'], row['chatluong'],
                row['ChitieuCL'], row['DanhgiaCL'], row['total_time_week'], row['total_time'], row['Ngaydaotao'],
                row['TuanLC'], row['Hieusuat_tuan'], row['ChitieuHS'], row['DanhgiaHS'], row['ttRaSX'])
         mycursor.execute(sql_update, val)
@@ -242,9 +245,13 @@ def result_report(request):
         week_max = week_training_report[week_training_report['ID'] == id]['WEEK'].unique().max()
         data.loc[training_data['ID'] == id, 'AMT_week'] = week_max - training_data['Week_start'].astype('int')
 
-    data.to_sql('result_report', con=engine_hbi, if_exists='replace', index=False)
+
+
+
+
+    # data.to_sql('result_reporta', con=engine_hbi, if_exists='replace', index=False)
     data.to_excel('data.xlsx', sheet_name='Kết quả đào tạo', index=False)
-    context = {'result_report': data}
+    context = {'result_reporta': data}
     print(data)
     return render(request, 'result_report.html', context)
 
@@ -367,7 +374,7 @@ def edit_dailyreport_data(request, ID, Date):
 
 def edit_result_data(request, ID):
     with connection.cursor() as cursor:
-        cursor.execute("SELECT * FROM result_report WHERE ID = %s", [ID])
+        cursor.execute("SELECT * FROM result_reporta WHERE ID = %s", [ID])
         row = cursor.fetchone()
         columns = [col[0] for col in cursor.description]
         record = dict(zip(columns, row)) if row else None
@@ -383,7 +390,7 @@ def edit_result_data(request, ID):
             'Type_training': request.POST.get('Type_training'),
             'NgayraSX': request.POST.get('NgayraSX'),
             'Technician': request.POST.get('Technician'),
-            'Hieusuatgiannhat': request.POST.get('Hieusuatgiannhat'),
+            'Hieusuatgannhat': request.POST.get('Hieusuatgannhat'),
             'ChitieuHS': request.POST.get('ChitieuHS'),
             'NgayTN': request.POST.get('NgayTN'),
             'Status': request.POST.get('Status'),
@@ -392,13 +399,13 @@ def edit_result_data(request, ID):
         }
 
         update_query = """
-            UPDATE result_report
-            SET Name = %s, Type_training = %s, NgayraSX = %s, Technician = %s, Hieusuatgiannhat = %s,
+            UPDATE result_reporta
+            SET Name = %s, Type_training = %s, NgayraSX = %s, Technician = %s, Hieusuatgannhat = %s,
                 ChitieuHS = %s, NgayTN = %s, Status = %s, Note = %s, AMT_week = %s
             WHERE ID = %s 
         """
         params = (
-            data['Name'], data['Type_training'], data['NgayraSX'], data['Technician'], data['Hieusuatgiannhat'], data['ChitieuHS'],
+            data['Name'], data['Type_training'], data['NgayraSX'], data['Technician'], data['Hieusuatgannhat'], data['ChitieuHS'],
             data['NgayTN'], data['Status'], data['Note'], data['AMT_week'], ID)
         try:
             with connection.cursor() as cursor:

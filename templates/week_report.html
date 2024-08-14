@@ -10,21 +10,22 @@
             </div>
             <div class="col-md-2 mb-3">
                 <label for="Line">Họ tên nhân viên:</label>
-                <input type="text" class="form-control w-100" id="Line" name="Line" placeholder="Nhập tuần P2K" value="{{ request.POST.Line|default_if_none:'' }}">
+                <input type="text" class="form-control w-100" id="Line" name="Line" placeholder="Nhập họ tên" value="{{ request.POST.Line|default_if_none:'' }}">
             </div>
             <div class="col-md-1 mb-3">
                 <label for="Line">Tuần P2K:</label>
                 <input type="text" class="form-control w-100" id="Line" name="Line" placeholder="Nhập tuần P2K" value="{{ request.POST.Line|default_if_none:'' }}">
             </div>
-
-            <div class="col-md-2 mb-3">
-                <label for="ttRaSX">Thứ tự tuần ra sản xuất:</label>
-                <input type="text" class="form-control w-100" id="a" name="ttRaSX" placeholder="Thứ tự tuần ra SX" value="{{ request.POST.ttRaSX|default_if_none:'' }}">
-            </div>
             <div class="col-md-1 mb-3">
                 <label for="YEAR">Năm:</label>
                 <input type="text" class="form-control w-100" id="" name="YEAR" placeholder="Nhập năm" value="{{ request.POST.YEAR|default_if_none:'' }}">
             </div>
+
+            <div class="col-md-2 mb-3">
+                <label for="ttRaSX">Công đoạn:</label>
+                <input type="text" class="form-control w-100" id="a" name="ttRaSX" placeholder="Nhập công đoạn" value="{{ request.POST.ttRaSX|default_if_none:'' }}">
+            </div>
+
             <div class="col-md-2 mb-3">
                 <label for="ttRaSX">Đánh giá chất lượng:</label>
                 <input type="text" class="form-control w-100" id="ttRaSX" name="ttRaSX" placeholder="Đánh giá chất lượng" value="{{ request.POST.ttRaSX|default_if_none:'' }}">

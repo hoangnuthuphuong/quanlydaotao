@@ -1,6 +1,6 @@
 {% extends 'index.html' %}
 
-{% block result_report %}
+{% block result_reporta %}
 <!-- Tìm kiếm-->
 <!--SỬA LẠI FORRM-->
         <form id="form_search_baocaotuan" class="form-inline w-100">
@@ -91,7 +91,7 @@
                             <th><span>Hiệu suất hiện tại</span></th>
                             <th><span>Chỉ tiêu HS</span></th>
                             <th><span>Ngày tốt nghiệp</span></th>
-                            <th><span>Thứ tự tuần tốt nghiệp</span></th>
+<!--                            <th><span>Thứ tự tuần tốt nghiệp</span></th>-->
                             <th><span>Trạng thái <a class="help" data-toggle="popover" title="tốt nghiệp/nghỉ việc" data-content="còn bất ổn"><i class="feather icon-help-circle f-16"></i></a></span></th>
                             <th><span>Ghi chú</span></th>
                             <th><span>Số tuần trong AMT</span></th>
@@ -99,7 +99,7 @@
                             </tr>
                         </thead>
                         <tbody id="body_table_weekreport">
-                            {% for employee in result_report.itertuples %}
+                            {% for employee in result_reporta.itertuples %}
                             <tr>
                                 <td>{{ employee.ID }}</td>
                                 <td>{{ employee.Name }}</td>
@@ -114,7 +114,7 @@
                                 <td>{{ employee.Hieusuatgannhat }}</td>
                                 <td>{{ employee.ChitieuHS }}</td>
                                 <td>{{ employee.NgayTN }}</td>
-                                <td>{{ employee.TTtuanTN }}</td>
+<!--                                <td>{{ employee.TTtuanTN }}</td>-->
                                 <td>{{ employee.Status }}</td>
                                 <td>{{ employee.Note }}</td>
                                 <td>{{ employee.AMT_week }}</td>
